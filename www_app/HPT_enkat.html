@@ -106,6 +106,8 @@ input{font-family:inherit}
 <body>
 <div id="shell"></div>
 <script>
+const WORKER_URL = "https://hpt-worker.johan-parmler.workers.dev"; // ← byt ut mot din Worker-URL
+
 const AREAS = [
   { key:"sam", name:"Teamets sammansättning", color:"var(--col-sam)",
     questions:["Vi har rätt mix av kompetenser för de uppgifter vi löser","Det är tydligt vem som ansvarar för vad i teamet","Vi har de roller vi behöver för att lyckas","Nya medlemmar kommer snabbt in i arbetet och kulturen"] },
@@ -167,9 +169,17 @@ function computeResult() {
 }
 
 async function saveResult() {
-  const r=computeResult();
-  if(!r.teamCode) return;
-  try{ await window.storage.set(`hpt:${r.teamCode}:resp:${uid()}`, JSON.stringify(r), true); }catch(_){}
+  const r = computeResult();
+  if (!r.teamCode) return;
+  try {
+    await fetch(WORKER_URL + "/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(r)
+    });
+  } catch(e) {
+    console.warn("Kunde inte spara svar:", e.message);
+  }
 }
 
 /* ── ADMIN DATA LOADING ──────────────────────────────────── */
