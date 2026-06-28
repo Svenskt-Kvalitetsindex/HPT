@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Högpresterande Team – Enkät</title>
+<style>
+:root {
+  --petrol:#0A434A; --petrol-mid:#0E5A63; --petrol-light:#EAF2F2;
+  --gold:#E0BD5E; --ink:#0F1F22; --muted:#5C7A7E;
+  --border:#D5E2E3; --bg:#F3F6F6; --card:#FFFFFF;
+  --col-sam:#0A434A; --col-rel:#15A8B8; --col-info:#7FC4CB;
+  --col-mal:#6E9E5C; --col-prest:#C46B38; --r:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Inter,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:transparent}
+input{font-family:inherit}
+#shell{display:flex;flex-direction:column;min-height:100%;max-width:600px;margin:0 auto}
+.topbar{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--petrol);color:#fff;flex-shrink:0}
+.topbar-logo{width:30px;height:30px;background:#fff;border-radius:3px;display:grid;place-items:center;flex-shrink:0}
+.topbar-logo svg{width:20px;height:20px}
+.topbar-name{font-weight:800;font-size:15px;letter-spacing:.1em}
+.topbar-sub{margin-left:auto;font-size:12px;letter-spacing:.15em;text-transform:uppercase;opacity:.75}
+.progress-wrap{height:4px;background:var(--border);flex-shrink:0}
+.progress-fill{height:100%;background:var(--gold);transition:width .35s ease}
+.area-header{display:flex;align-items:center;gap:10px;padding:16px 20px 0;flex-shrink:0}
+.area-pip{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.area-name{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.area-count{margin-left:auto;font-size:12px;color:var(--muted)}
+.q-wrap{flex:1;display:flex;flex-direction:column;padding:16px 20px 20px}
+.q-card{background:var(--card);border-radius:var(--r);box-shadow:0 1px 3px rgba(10,35,40,.06),0 6px 20px rgba(10,35,40,.07);padding:clamp(20px,4vw,32px);flex:1;display:flex;flex-direction:column}
+.q-number{font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
+.q-text{font-size:clamp(18px,4.5vw,22px);font-weight:700;line-height:1.35;flex:1;margin-bottom:28px}
+.scale-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
+.s-btn{aspect-ratio:1;border:2px solid var(--border);border-radius:var(--r);font-size:clamp(17px,4vw,22px);font-weight:800;color:var(--ink);background:var(--card);transition:border-color .12s,background .12s,color .12s,transform .1s;display:grid;place-items:center}
+.s-btn:active{transform:scale(.93)}
+.s-btn.selected{background:var(--petrol);border-color:var(--petrol);color:#fff}
+.scale-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:16px;padding:0 2px}
+.vet-btn{width:100%;padding:11px;border:1.5px dashed var(--border);border-radius:var(--r);font-size:13px;font-weight:600;color:var(--muted);text-align:center;transition:border-color .12s,background .12s,color .12s}
+.vet-btn.selected{background:var(--petrol-light);border-style:solid;border-color:var(--petrol-mid);color:var(--petrol)}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:0 20px 24px;gap:12px;flex-shrink:0}
+.btn-back{padding:13px 20px;border-radius:var(--r);font-size:15px;font-weight:700;color:var(--muted);border:1.5px solid var(--border)}
+.btn-next{flex:1;padding:15px 20px;border-radius:var(--r);font-size:16px;font-weight:800;background:var(--petrol);color:#fff;letter-spacing:.02em;transition:opacity .15s,transform .1s}
+.btn-next:disabled{opacity:.35;cursor:not-allowed}
+.btn-next:not(:disabled):active{transform:scale(.97)}
+.screen-start{flex:1;display:flex;flex-direction:column}
+.start-hero{background:var(--petrol);color:#fff;padding:clamp(28px,6vw,52px) 24px clamp(32px,7vw,60px);text-align:center}
+.start-hero .eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;margin-bottom:16px}
+.start-hero h1{font-size:clamp(26px,7vw,38px);font-weight:800;line-height:1.1;margin-bottom:14px}
+.start-hero h1 em{font-style:normal;color:var(--gold)}
+.start-hero p{font-size:clamp(14px,3.5vw,16px);opacity:.85;max-width:38ch;margin:0 auto;line-height:1.55}
+.start-body{padding:24px 20px;flex:1;display:flex;flex-direction:column;gap:16px}
+.field label{display:block;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.field input{width:100%;padding:15px 16px;border:1.5px solid var(--border);border-radius:var(--r);font-size:17px;color:var(--ink);background:var(--card);transition:border-color .15s}
+.field input:focus{outline:none;border-color:var(--petrol-mid)}
+.field .hint{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.5}
+.meta-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.pill{font-size:12px;color:var(--muted);background:var(--petrol-light);border-radius:99px;padding:5px 11px}
+.btn-start{width:100%;padding:17px;border-radius:var(--r);font-size:17px;font-weight:800;background:var(--petrol);color:#fff;letter-spacing:.02em;margin-top:auto;transition:filter .15s}
+.btn-start:not(:disabled):hover{filter:brightness(1.08)}
+.btn-start:disabled{opacity:.35;cursor:not-allowed}
+.screen-done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center}
+.done-icon{width:80px;height:80px;border-radius:50%;background:var(--petrol);display:grid;place-items:center;margin:0 auto 24px}
+.done-icon svg{width:40px;height:40px}
+.screen-done h2{font-size:clamp(22px,5vw,28px);font-weight:800;margin-bottom:12px}
+.screen-done p{color:var(--muted);font-size:clamp(14px,3.5vw,16px);max-width:34ch;line-height:1.55;margin-bottom:32px}
+.done-team{display:inline-flex;align-items:center;gap:8px;background:var(--petrol-light);border:1px solid var(--border);border-radius:99px;padding:9px 16px;font-size:14px;font-weight:700;color:var(--petrol);margin-bottom:32px}
+.btn-again{padding:13px 24px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-weight:700;color:var(--muted)}
+
+/* ── ADMIN ── */
+.admin-hero{background:var(--petrol);color:#fff;padding:24px 20px 20px}
+.admin-hero h2{font-size:clamp(20px,5vw,26px);font-weight:800;margin-bottom:4px}
+.admin-hero .sub{font-size:14px;opacity:.75}
+.admin-body{padding:20px}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.stat{background:var(--card);border-radius:var(--r);padding:16px;text-align:center;box-shadow:0 1px 3px rgba(10,35,40,.06),0 4px 12px rgba(10,35,40,.06)}
+.stat .num{font-size:clamp(26px,6vw,36px);font-weight:800;color:var(--petrol)}
+.stat .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:4px}
+.area-card{background:var(--card);border-radius:var(--r);box-shadow:0 1px 3px rgba(10,35,40,.06),0 4px 12px rgba(10,35,40,.06);margin-bottom:14px;overflow:hidden}
+.area-card-head{display:flex;align-items:center;gap:10px;padding:14px 16px;color:#fff;font-weight:800;font-size:14px}
+.area-card-body{padding:14px 16px}
+.score-big{font-size:clamp(32px,7vw,44px);font-weight:800;line-height:1}
+.bench-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin:8px 0 4px}
+.bar-wrap{height:8px;background:var(--border);border-radius:99px;position:relative;overflow:visible;margin-bottom:12px}
+.bar-fill{height:100%;border-radius:99px;transition:width .6s ease}
+.bar-bench{position:absolute;top:-3px;bottom:-3px;width:2.5px;border-radius:2px;background:var(--ink)}
+.q-rows{border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.q-row{font-size:13px}
+.q-row .qlbl{color:var(--muted);margin-bottom:3px}
+.q-row .qbar-wrap{height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.q-row .qbar-fill{height:100%;border-radius:99px}
+.q-row .qscore{font-size:12px;font-weight:700;color:var(--ink);margin-top:2px}
+.admin-empty{text-align:center;padding:60px 24px;color:var(--muted)}
+.admin-empty h3{font-size:20px;font-weight:700;color:var(--ink);margin-bottom:10px}
+.btn-reload{margin-top:20px;padding:13px 24px;border-radius:var(--r);font-size:15px;font-weight:700;background:var(--petrol);color:#fff;display:inline-block}
+.prest-card{background:var(--col-prest);color:#fff;border-radius:var(--r);padding:18px 16px;margin-bottom:14px;display:flex;align-items:center;gap:20px}
+.prest-card .num{font-size:clamp(36px,8vw,52px);font-weight:800;line-height:1}
+.prest-card .info .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.85;margin-bottom:4px}
+.prest-card .info .desc{font-size:13px;opacity:.9}
+.spin{display:inline-block;width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--petrol);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="shell"></div>
+<script>
+const AREAS = [
+  { key:"sam", name:"Teamets sammansättning", color:"var(--col-sam)",
+    questions:["Vi har rätt mix av kompetenser för de uppgifter vi löser","Det är tydligt vem som ansvarar för vad i teamet","Vi har de roller vi behöver för att lyckas","Nya medlemmar kommer snabbt in i arbetet och kulturen"] },
+  { key:"rel", name:"Samarbete & relationer", color:"var(--col-rel)",
+    questions:["Vi litar på varandra i teamet","Vi hjälper varandra när arbetsbelastningen är hög","Vi hanterar konflikter på ett konstruktivt sätt","Jag känner mig trygg att dela åsikter och idéer","Vi kan vara öppna om misstag och osäkerheter"] },
+  { key:"info", name:"Informationsdelning & kunskap", color:"var(--col-info)",
+    questions:["Vi delar information aktivt inom teamet","Vi har en tydlig struktur för hur vi organiserar och lagrar kunskap","Vi delar med oss av misstag och lärdomar","Vi förbereder oss gemensamt inför viktiga möten","Efter viktiga möten utvärderar vi gemensamt vad som hände"] },
+  { key:"mal", name:"Mål & riktning", color:"var(--col-mal)",
+    questions:["Vi har tydliga och gemensamma mål","Jag förstår hur mitt arbete bidrar till teamets övergripande mål","Vi följer regelbundet upp och justerar våra mål","Vi är överens om vad som är viktigast att prioritera just nu","Det är tydligt vad som förväntas av mig och teamet"] }
+];
+const PREST = [
+  { q:"Hur nöjd är du med ditt nuvarande team?",              lo:"Inte alls nöjd",      hi:"Mycket nöjd" },
+  { q:"Hur väl uppfyller teamet dina förväntningar?",         lo:"Inte alls",           hi:"Helt och hållet" },
+  { q:"Hur nära är teamet ett perfekt, högpresterande team?", lo:"Mycket långt ifrån",  hi:"Mycket nära" }
+];
+
+// Flat question list
+const ALL = [];
+AREAS.forEach(a => a.questions.forEach((q,i) =>
+  ALL.push({ areaKey:a.key, areaName:a.name, areaColor:a.color, qIndex:i, qTotal:a.questions.length, text:q, lo:"Instämmer inte alls", hi:"Instämmer helt" })));
+PREST.forEach((p,i) =>
+  ALL.push({ areaKey:"prest", areaName:"Ditt teams prestation", areaColor:"var(--col-prest)", qIndex:i, qTotal:PREST.length, text:p.q, lo:p.lo, hi:p.hi }));
+
+/* ── STATE ───────────────────────────────────────────────── */
+const params   = new URLSearchParams(location.search);
+const IS_ADMIN = params.get("admin") === "1";
+
+const state = {
+  screen: "start",
+  name: "",
+  teamCode: params.get("team") || "",
+  cursor: 0,
+  answers: new Array(ALL.length).fill(null),
+  adminLoading: false,
+  adminData: null,
+  adminErr: ""
+};
+
+/* ── UTILS ───────────────────────────────────────────────── */
+const uid  = () => Math.random().toString(36).slice(2,10);
+const san  = s => (s||"").trim().toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9\-åäö]/g,"").slice(0,40);
+const mean = arr => { const v=arr.filter(x=>x!=null&&x!=="na"&&typeof x==="number"); return v.length?v.reduce((a,b)=>a+b,0)/v.length:null; };
+const idx  = avg  => avg==null?null:+(((avg-1)/9)*100).toFixed(1);
+const fmt  = v => v==null?"–":v.toFixed(1);
+const clamp= (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+
+function computeResult() {
+  const areas={};
+  AREAS.forEach(a=>{
+    const vals=ALL.filter(q=>q.areaKey===a.key).map(q=>state.answers[ALL.indexOf(q)]).filter(v=>typeof v==="number");
+    areas[a.key]={ score:idx(mean(vals)), qs:[] };
+    a.questions.forEach((qt,qi)=>{
+      const raw=state.answers[ALL.findIndex(x=>x.areaKey===a.key&&x.qIndex===qi)];
+      areas[a.key].qs.push({ text:qt, raw:typeof raw==="number"?raw:null });
+    });
+  });
+  const pv=ALL.filter(q=>q.areaKey==="prest").map(q=>state.answers[ALL.indexOf(q)]).filter(v=>typeof v==="number");
+  return { name:state.name, teamCode:san(state.teamCode), areas, prest:idx(mean(pv)), ts:Date.now() };
+}
+
+async function saveResult() {
+  const r=computeResult();
+  if(!r.teamCode) return;
+  try{ await window.storage.set(`hpt:${r.teamCode}:resp:${uid()}`, JSON.stringify(r), true); }catch(_){}
+}
+
+/* ── ADMIN DATA LOADING ──────────────────────────────────── */
+async function loadAdminData(teamCode) {
+  state.adminLoading=true; state.adminErr=""; state.adminData=null; render();
+  const code=san(teamCode);
+  if(!code){ state.adminErr="Ingen teamkod angiven."; state.adminLoading=false; render(); return; }
+  try {
+    const list = await window.storage.list(`hpt:${code}:resp:`, true);
+    const keys = (list&&list.keys)||[];
+    if(!keys.length){ state.adminErr=`Inga svar hittades för teamkod "${code}". Kontrollera stavningen.`; state.adminLoading=false; render(); return; }
+    const resps=[];
+    for(const k of keys){
+      try{ const g=await window.storage.get(k,true); if(g&&g.value) resps.push(JSON.parse(g.value)); }catch(_){}
+    }
+    // Aggregate per area and per question
+    const areas={};
+    AREAS.forEach(a=>{
+      const scores=resps.map(r=>r.areas&&r.areas[a.key]&&r.areas[a.key].score!=null?r.areas[a.key].score:
+                              (r.areas&&r.areas[a.key]!=null&&typeof r.areas[a.key]==="number"?r.areas[a.key]:null))
+                        .filter(v=>v!=null);
+      const qScores=a.questions.map((qt,qi)=>{
+        // support both old format (score number) and new (object with qs array)
+        const raws=resps.map(r=>{
+          if(r.areas&&r.areas[a.key]&&r.areas[a.key].qs) return r.areas[a.key].qs[qi]&&r.areas[a.key].qs[qi].raw;
+          return null;
+        }).filter(v=>typeof v==="number");
+        return { text:qt, score:raws.length?+(raws.reduce((a,b)=>a+b,0)/raws.length*100/9).toFixed(1):null };
+      });
+      areas[a.key]={ score:scores.length?+(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1):null, qs:qScores };
+    });
+    const prestScores=resps.map(r=>r.prest!=null?r.prest:null).filter(v=>v!=null);
+    const prest=prestScores.length?+(prestScores.reduce((a,b)=>a+b,0)/prestScores.length).toFixed(1):null;
+    const names=resps.map(r=>r.name).filter(Boolean);
+    state.adminData={ n:resps.length, areas, prest, names, code };
+  } catch(e) {
+    state.adminErr="Kunde inte läsa data: "+e.message;
+  }
+  state.adminLoading=false; render();
+}
+
+/* ── RENDER ─────────────────────────────────────────────── */
+const shell = document.getElementById("shell");
+const SKI_LOGO = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M30 8a16 16 0 1 0 8 14h-8a8 8 0 1 1-4-7V8z" fill="#0A434A"/></svg>`;
+const CHECK   = `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 20l9 9 15-16" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const REFRESH = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16"><path d="M17 10a7 7 0 1 1-1.5-4.33M17 3v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function render() {
+  if(IS_ADMIN){ renderAdmin(); return; }
+  const pct = state.screen==="survey" ? Math.round((state.cursor/ALL.length)*100)
+            : state.screen==="done"   ? 100 : 0;
+  shell.innerHTML =
+    `<div class="topbar">
+       <div class="topbar-logo">${SKI_LOGO}</div>
+       <span class="topbar-name">SKI</span>
+       <span class="topbar-sub">Högpresterande Team</span>
+     </div>
+     <div class="progress-wrap"><div class="progress-fill" style="width:${pct}%"></div></div>` +
+    (state.screen==="start"  ? renderStart()  :
+     state.screen==="survey" ? renderSurvey() : renderDone());
+  bindAll();
+}
+
+/* ── ADMIN RENDER ────────────────────────────────────────── */
+const BENCH = { sam:78.1, rel:78.5, info:67.6, mal:71.5 };
+const AREA_COLORS = { sam:"#0A434A", rel:"#15A8B8", info:"#7FC4CB", mal:"#6E9E5C" };
+
+function renderAdmin() {
+  const d = state.adminData;
+  const tc = san(state.teamCode) || san(params.get("team")||"");
+
+  let body = "";
+  if(state.adminLoading) {
+    body = `<div class="admin-empty"><div class="spin"></div><p style="margin-top:16px">Läser svar…</p></div>`;
+  } else if(state.adminErr) {
+    body = `<div class="admin-empty">
+      <h3>Inga svar hittades</h3>
+      <p>${state.adminErr}</p>
+      <div class="field" style="max-width:280px;margin:20px auto 0;text-align:left">
+        <label for="atc">Teamkod</label>
+        <input id="atc" type="text" value="${tc}" placeholder="teamkod">
+      </div>
+      <button class="btn-reload" id="btn-load">Försök igen</button>
+    </div>`;
+  } else if(!d) {
+    body = `<div class="admin-empty">
+      <h3>Visa teamets resultat</h3>
+      <p>Ange teamkoden för att läsa in svaren.</p>
+      <div class="field" style="max-width:280px;margin:20px auto 0;text-align:left">
+        <label for="atc">Teamkod</label>
+        <input id="atc" type="text" value="${tc}" placeholder="teamkod">
+      </div>
+      <button class="btn-reload" id="btn-load">Hämta resultat</button>
+    </div>`;
+  } else {
+    // Prestationsindex card
+    const prestHTML = `<div class="prest-card">
+      <div class="num">${fmt(d.prest)}</div>
+      <div class="info">
+        <div class="lbl">Prestationsindex</div>
+        <div class="desc">Teamets samlade betyg på hur nöjda, förväntansuppfyllda och nära ett högpresterande team de upplever sig vara (0–100)</div>
+      </div>
+    </div>`;
+
+    // Area cards
+    const areaCards = AREAS.map(a => {
+      const ad = d.areas[a.key];
+      const score = ad&&ad.score!=null?ad.score:null;
+      const bench = BENCH[a.key];
+      const col   = AREA_COLORS[a.key];
+      const fillW = score!=null?clamp(score,0,100):0;
+      const benchW= clamp(bench,0,100);
+
+      const qRows = (ad&&ad.qs||[]).map(q=>{
+        if(q.score==null) return "";
+        const qw=clamp(q.score,0,100);
+        return `<div class="q-row">
+          <div class="qlbl">${q.text}</div>
+          <div class="qbar-wrap"><div class="qbar-fill" style="width:${qw}%;background:${col}"></div></div>
+          <div class="qscore">${q.score.toFixed(1)}</div>
+        </div>`;
+      }).join("");
+
+      return `<div class="area-card">
+        <div class="area-card-head" style="background:${col}">
+          <span style="font-size:22px;font-weight:800">${fmt(score)}</span>
+          <span>${a.name}</span>
+        </div>
+        <div class="area-card-body">
+          <div class="bench-row"><span>Ert resultat</span><span>Nationellt snitt: ${bench}</span></div>
+          <div class="bar-wrap">
+            <div class="bar-fill" style="width:${fillW}%;background:${col}"></div>
+            <div class="bar-bench" style="left:${benchW}%"></div>
+          </div>
+          ${qRows?`<div class="q-rows">${qRows}</div>`:""}
+        </div>
+      </div>`;
+    }).join("");
+
+    const nameList = d.names.length ? d.names.slice(0,20).join(", ")+(d.names.length>20?" m.fl.":"") : "–";
+
+    body = `
+      <div class="stat-row">
+        <div class="stat"><div class="num">${d.n}</div><div class="lbl">Svar</div></div>
+        <div class="stat"><div class="num">${fmt(d.prest)}</div><div class="lbl">Prestationsindex</div></div>
+        <div class="stat"><div class="num">${d.code}</div><div class="lbl">Teamkod</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Har svarat: ${nameList}</p>
+      ${prestHTML}
+      ${areaCards}
+      <button class="btn-reload" id="btn-reload" style="margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px">${REFRESH} Uppdatera</button>
+    `;
+  }
+
+  shell.innerHTML = `
+    <div class="topbar">
+      <div class="topbar-logo">${SKI_LOGO}</div>
+      <span class="topbar-name">SKI</span>
+      <span class="topbar-sub">Resultat – Admin</span>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:100%"></div></div>
+    <div class="admin-hero">
+      <h2>Teamets resultat</h2>
+      <div class="sub">${d?`${d.n} svar · teamkod: ${d.code}`:(tc?`teamkod: ${tc}`:"")}</div>
+    </div>
+    <div class="admin-body">${body}</div>`;
+
+  // Bind admin buttons
+  const bl = document.getElementById("btn-load");
+  const br = document.getElementById("btn-reload");
+  const atc= document.getElementById("atc");
+  if(atc) atc.addEventListener("input", ()=>{ state.teamCode=atc.value; });
+  if(bl)  bl.addEventListener("click",  ()=>{ loadAdminData(state.teamCode||atc&&atc.value||""); });
+  if(br)  br.addEventListener("click",  ()=>{ loadAdminData(d.code); });
+}
+
+/* ── SURVEY SCREENS ──────────────────────────────────────── */
+function renderStart() {
+  return `<div class="screen-start">
+    <div class="start-hero">
+      <p class="eyebrow">Svenskt Kvalitetsindex</p>
+      <h1>Hur fungerar<br><em>ert team</em> egentligen?</h1>
+      <p>Svara på ${ALL.length} frågor om hur ni jobbar tillsammans. Tar ungefär 4 minuter.</p>
+    </div>
+    <div class="start-body">
+      <div class="field">
+        <label for="nm">Ditt namn</label>
+        <input id="nm" type="text" autocomplete="name" placeholder="Förnamn Efternamn" value="${state.name}">
+      </div>
+      <div class="field">
+        <label for="tc">Teamkod</label>
+        <input id="tc" type="text" placeholder="t.ex. saljteam-sthlm" value="${state.teamCode}">
+        <p class="hint">Alla i teamet anger samma kod. Lämna tomt för att testa enskilt.</p>
+      </div>
+      <div class="meta-pills">
+        <span class="pill">4 områden</span>
+        <span class="pill">${ALL.length} frågor</span>
+        <span class="pill">Skala 1–10</span>
+        <span class="pill">~4 min</span>
+      </div>
+      <button id="btn-start" class="btn-start" ${state.name.trim()?"":"disabled"}>Starta enkäten →</button>
+    </div>
+  </div>`;
+}
+
+function renderSurvey() {
+  const q   = ALL[state.cursor];
+  const val = state.answers[state.cursor];
+  const areaQs    = ALL.filter(x=>x.areaKey===q.areaKey);
+  const posInArea = areaQs.indexOf(q)+1;
+  let r1="", r2="";
+  for(let n=1;n<=5;n++)  r1+=`<button class="s-btn${val===n?" selected":""}" id="sb${n}">${n}</button>`;
+  for(let n=6;n<=10;n++) r2+=`<button class="s-btn${val===n?" selected":""}" id="sb${n}">${n}</button>`;
+  const isLast = state.cursor===ALL.length-1;
+  return `
+    <div class="area-header">
+      <span class="area-pip" style="background:${q.areaColor}"></span>
+      <span class="area-name">${q.areaName}</span>
+      <span class="area-count">${posInArea} / ${q.qTotal}</span>
+    </div>
+    <div class="q-wrap">
+      <div class="q-card">
+        <div class="q-number">Fråga ${state.cursor+1} av ${ALL.length}</div>
+        <div class="q-text">${q.text}</div>
+        <div class="scale-row">${r1}</div>
+        <div class="scale-row">${r2}</div>
+        <div class="scale-labels"><span>${q.lo}</span><span>${q.hi}</span></div>
+        <button class="vet-btn${val==="na"?" selected":""}" id="vet">Vet ej / inte relevant</button>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" id="btn-back">${state.cursor===0?"Avbryt":"← Tillbaka"}</button>
+      <button class="btn-next" id="btn-next" ${val!==null?"":"disabled"}>${isLast?"Skicka in":"Nästa →"}</button>
+    </div>`;
+}
+
+function renderDone() {
+  const tc=san(state.teamCode);
+  return `<div class="screen-done">
+    <div class="done-icon">${CHECK}</div>
+    <h2>Tack, ${state.name.split(" ")[0]||"du"}!</h2>
+    <p>Dina svar är sparade. Workshopledaren visar teamets samlade resultat när alla har svarat.</p>
+    ${tc?`<div class="done-team">Teamkod: <strong>${tc}</strong></div>`:""}
+    <button class="btn-again" id="btn-again">Svara igen</button>
+  </div>`;
+}
+
+/* ── BIND (enkät) ────────────────────────────────────────── */
+function bindAll() {
+  const nm=document.getElementById("nm");
+  const tc=document.getElementById("tc");
+  const bs=document.getElementById("btn-start");
+  if(nm) nm.addEventListener("input",()=>{ state.name=nm.value; if(bs) bs.disabled=!state.name.trim(); });
+  if(tc) tc.addEventListener("input",()=>{ state.teamCode=tc.value; });
+  if(bs) bs.addEventListener("click",()=>{ if(state.name.trim()){ state.screen="survey"; render(); } });
+
+  for(let n=1;n<=10;n++){
+    const b=document.getElementById("sb"+n);
+    if(b) b.addEventListener("click",()=>{ pick(n); });
+  }
+  const vet=document.getElementById("vet");
+  if(vet) vet.addEventListener("click",()=>{ pick("na"); });
+
+  const back=document.getElementById("btn-back");
+  if(back) back.addEventListener("click",()=>{
+    if(state.cursor===0){ state.screen="start"; } else { state.cursor--; }
+    render();
+  });
+  const next=document.getElementById("btn-next");
+  if(next) next.addEventListener("click",()=>{
+    if(state.answers[state.cursor]===null) return;
+    if(state.cursor<ALL.length-1){ state.cursor++; render(); }
+    else{ saveResult().finally(()=>{ state.screen="done"; render(); }); }
+  });
+  const ag=document.getElementById("btn-again");
+  if(ag) ag.addEventListener("click",()=>{
+    state.screen="start"; state.cursor=0;
+    state.answers=new Array(ALL.length).fill(null);
+    render();
+  });
+}
+
+function pick(val){ state.answers[state.cursor]=val; render(); }
+
+/* ── BOOT ────────────────────────────────────────────────── */
+if(IS_ADMIN){
+  const tc = san(params.get("team")||"");
+  state.teamCode = tc;
+  render(); // show shell first
+  if(tc) loadAdminData(tc);
+} else {
+  render();
+}
+</script>
+</body>
+</html>

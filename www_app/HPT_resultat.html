@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Högpresterande Team – Resultat</title>
+<style>
+/* ── TOKENS ─────────────────────────────────────────────── */
+:root{
+  --p:#0A434A; --p2:#0E5A63; --p3:#EAF2F2;
+  --gold:#E0BD5E; --terra:#C46B38;
+  --ink:#0F1F22; --muted:#5C7A7E; --border:#D5E2E3; --bg:#F3F6F6; --card:#fff;
+  --sam:#0A434A; --rel:#15A8B8; --info:#7FC4CB; --mal:#6E9E5C;
+  --r:8px; --shadow:0 1px 3px rgba(10,35,40,.05),0 8px 24px rgba(10,35,40,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{font-family:Inter,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100%}
+button{font-family:inherit;cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:transparent}
+input{font-family:inherit}
+
+/* ── TOPBAR ─────────────────────────────────────────────── */
+.topbar{background:var(--p);color:#fff;display:flex;align-items:center;gap:14px;padding:14px clamp(16px,3vw,32px);position:sticky;top:0;z-index:100}
+.logo{width:32px;height:32px;background:#fff;border-radius:3px;display:grid;place-items:center;flex-shrink:0}
+.logo svg{width:21px;height:21px}
+.topbar-title{font-weight:800;font-size:15px;letter-spacing:.08em}
+.topbar-team{margin-left:8px;font-size:13px;opacity:.7;font-weight:400}
+.topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.tab-btn{padding:8px 14px;border-radius:4px;font-size:13px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.04em;transition:background .15s,color .15s}
+.tab-btn.active{background:rgba(255,255,255,.15);color:#fff}
+.tab-btn:hover{color:#fff}
+.refresh-btn{padding:8px 10px;border-radius:4px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600}
+.refresh-btn:hover{color:#fff}
+
+/* ── ENTRY SCREEN ────────────────────────────────────────── */
+.entry{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.entry-logo{width:64px;height:64px;background:var(--p);border-radius:8px;display:grid;place-items:center;margin:0 auto 28px}
+.entry-logo svg{width:42px;height:42px}
+.entry h1{font-size:clamp(24px,5vw,34px);font-weight:800;margin-bottom:10px}
+.entry p{color:var(--muted);max-width:38ch;margin:0 auto 28px;line-height:1.6}
+.entry-card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:28px 24px;width:min(400px,100%)}
+.field label{display:block;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.field input{width:100%;padding:14px 15px;border:1.5px solid var(--border);border-radius:5px;font-size:17px;color:var(--ink)}
+.field input:focus{outline:2px solid var(--p2);outline-offset:1px}
+.btn-primary{width:100%;margin-top:16px;padding:15px;border-radius:5px;background:var(--p);color:#fff;font-size:16px;font-weight:800;letter-spacing:.02em;transition:filter .15s}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed}
+.btn-demo{width:100%;margin-top:10px;padding:13px;border-radius:5px;border:1.5px dashed var(--border);font-size:14px;font-weight:700;color:var(--muted);transition:border-color .15s,color .15s;background:none;cursor:pointer}
+.btn-demo:hover{border-color:var(--p2);color:var(--p)}
+.err{background:#FBEAE5;border:1px solid #E8B6A6;color:#8A3B1E;border-radius:5px;padding:11px 13px;font-size:14px;margin-top:12px}
+
+/* ── LOADING ─────────────────────────────────────────────── */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:18px;color:var(--muted)}
+.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--p);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ── RESULT PAGE ─────────────────────────────────────────── */
+.page{max-width:1100px;margin:0 auto;padding:clamp(20px,3vw,40px) clamp(16px,3vw,32px)}
+
+/* Hero: circle + meta */
+.result-hero{display:grid;grid-template-columns:auto 1fr;gap:clamp(24px,4vw,56px);align-items:center;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:clamp(24px,4vw,40px);margin-bottom:24px}
+.circle-wrap{position:relative;width:clamp(140px,18vw,200px);height:clamp(140px,18vw,200px);flex-shrink:0}
+.circle-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.circle-bg{fill:none;stroke:var(--border);stroke-width:10}
+.circle-fill{fill:none;stroke:var(--terra);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)}
+.circle-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:none}
+.circle-num{font-size:clamp(28px,5vw,44px);font-weight:800;line-height:1;color:var(--ink)}
+.circle-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:3px;text-align:center;max-width:70px;line-height:1.3}
+.hero-meta h2{font-size:clamp(20px,3vw,28px);font-weight:800;margin-bottom:6px}
+.hero-meta .team-chip{display:inline-flex;align-items:center;gap:6px;background:var(--p3);border-radius:99px;padding:5px 12px;font-size:13px;font-weight:700;color:var(--p);margin-bottom:14px}
+.hero-meta .desc{color:var(--muted);font-size:15px;max-width:52ch;line-height:1.6}
+.n-badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin-top:12px}
+.n-badge strong{color:var(--ink)}
+
+/* Area grid */
+.area-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px}
+.area-card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.area-head{padding:18px 20px 16px;color:#fff;display:flex;align-items:flex-end;justify-content:space-between}
+.area-score{font-size:clamp(36px,6vw,52px);font-weight:800;line-height:1}
+.area-name-block{text-align:right}
+.area-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-bottom:2px}
+.area-name-text{font-size:clamp(13px,2vw,15px);font-weight:700;max-width:20ch;text-align:right;line-height:1.25}
+.area-body{padding:16px 20px 18px}
+.bench-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px}
+.bar-track{height:8px;background:var(--border);border-radius:99px;position:relative;overflow:visible;margin-bottom:14px}
+.bar-fill{height:100%;border-radius:99px;transition:width 1s .2s ease}
+.bar-bench{position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:2px;background:var(--ink);opacity:.35}
+.qs-list{display:flex;flex-direction:column;gap:9px}
+.q-item{}
+.q-item-label{font-size:12px;color:var(--muted);margin-bottom:3px;line-height:1.4}
+.q-item-bar{height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:2px}
+.q-item-fill{height:100%;border-radius:99px;transition:width 1s .4s ease}
+.q-item-score{font-size:12px;font-weight:700;color:var(--ink)}
+
+/* Insight band */
+.insight-band{background:var(--p);color:#fff;border-radius:var(--r);padding:clamp(18px,3vw,28px) clamp(20px,3vw,32px);margin-bottom:24px;display:flex;align-items:flex-start;gap:16px}
+.insight-icon{font-size:28px;flex-shrink:0;margin-top:2px}
+.insight-text h3{font-size:16px;font-weight:800;margin-bottom:6px;color:var(--gold)}
+.insight-text p{font-size:14px;opacity:.9;line-height:1.6;max-width:72ch}
+
+/* Workshop button */
+.ws-trigger{width:100%;padding:18px;border-radius:var(--r);background:var(--gold);color:var(--ink);font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:24px;transition:filter .15s}
+.ws-trigger:hover{filter:brightness(1.05)}
+.ws-trigger:disabled{opacity:.5;cursor:not-allowed}
+.ws-trigger .spin-sm{width:18px;height:18px;border:2px solid rgba(10,35,40,.2);border-top-color:var(--ink);border-radius:50%;animation:sp .7s linear infinite;flex-shrink:0}
+
+/* ── WORKSHOP PANEL ──────────────────────────────────────── */
+.ws-panel{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}
+.ws-tabs{display:flex;border-bottom:1px solid var(--border)}
+.ws-tab{flex:1;padding:14px;font-size:14px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;transition:color .15s,border-color .15s}
+.ws-tab.active{color:var(--p);border-bottom-color:var(--p)}
+.ws-content{padding:clamp(18px,3vw,28px)}
+
+/* Summary */
+.ws-summary{background:var(--p3);border-left:3px solid var(--p2);padding:14px 16px;border-radius:0 5px 5px 0;margin-bottom:20px;font-size:15px;line-height:1.6;color:var(--p)}
+
+/* Priority blocks */
+.prio-block{border:1px solid var(--border);border-radius:6px;padding:18px;margin-bottom:12px}
+.prio-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.prio-pip{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.prio-name{font-weight:800;font-size:15px}
+.prio-why{font-size:14px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.prio-qs{display:flex;flex-direction:column;gap:8px}
+.disc-q{background:var(--bg);border-radius:5px;padding:11px 14px;font-size:14px;line-height:1.5;display:flex;gap:10px}
+.disc-q .dq-num{font-weight:800;color:var(--muted);flex-shrink:0}
+.sport-block{background:var(--p);color:#fff;border-radius:6px;padding:18px;margin-top:16px;display:flex;gap:14px}
+.sport-block .sport-icon{font-size:24px;flex-shrink:0}
+.sport-block h4{font-size:13px;font-weight:800;color:var(--gold);margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase}
+.sport-block p{font-size:14px;opacity:.9;line-height:1.55}
+
+/* Chat */
+.chat-log{display:flex;flex-direction:column;gap:10px;min-height:120px;margin-bottom:14px}
+.bub{max-width:78%;padding:12px 15px;border-radius:10px;font-size:15px;line-height:1.55;white-space:pre-wrap}
+.bub.u{align-self:flex-end;background:var(--p);color:#fff;border-bottom-right-radius:3px}
+.bub.a{align-self:flex-start;background:var(--p3);color:var(--ink);border-bottom-left-radius:3px}
+.bub.thinking{opacity:.6}
+.suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.sug{border:1px solid var(--border);background:#fff;border-radius:99px;padding:8px 13px;font-size:13px;color:var(--p);font-weight:600;transition:border-color .12s}
+.sug:hover{border-color:var(--p2)}
+.chat-bar{display:flex;gap:10px}
+.chat-input{flex:1;padding:13px 15px;border:1.5px solid var(--border);border-radius:5px;font-size:16px;color:var(--ink)}
+.chat-input:focus{outline:2px solid var(--p2);outline-offset:1px}
+.send-btn{padding:13px 18px;border-radius:5px;background:var(--p);color:#fff;font-weight:700;font-size:15px;transition:filter .15s}
+.send-btn:hover{filter:brightness(1.1)}
+.send-btn:disabled{opacity:.4}
+.chat-note{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
+
+/* Responsive */
+@media(max-width:700px){
+  .result-hero{grid-template-columns:1fr;text-align:center}
+  .circle-wrap{margin:0 auto}
+  .area-grid{grid-template-columns:1fr}
+  .bub{max-width:90%}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const DEMO_DATA = [{"key":"hpt:demo-team:resp:c670q36q","value":{"name":"Anna Lindström","teamCode":"demo-team","areas":{"sam":{"score":83.3,"qs":[{"text":"fråga_1","raw":9},{"text":"fråga_2","raw":8},{"text":"fråga_3","raw":9},{"text":"fråga_4","raw":8}]},"rel":{"score":80,"qs":[{"text":"fråga_1","raw":8},{"text":"fråga_2","raw":9},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":9},{"text":"fråga_5","raw":8}]},"info":{"score":53.3,"qs":[{"text":"fråga_1","raw":6},{"text":"fråga_2","raw":5},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":6},{"text":"fråga_5","raw":5}]},"mal":{"score":53.3,"qs":[{"text":"fråga_1","raw":6},{"text":"fråga_2","raw":5},{"text":"fråga_3","raw":6},{"text":"fråga_4","raw":7},{"text":"fråga_5","raw":5}]}},"prest":74.1,"ts":1782128679366}},{"key":"hpt:demo-team:resp:cdl8ga9l","value":{"name":"Marcus Björk","teamCode":"demo-team","areas":{"sam":{"score":72.2,"qs":[{"text":"fråga_1","raw":8},{"text":"fråga_2","raw":7},{"text":"fråga_3","raw":8},{"text":"fråga_4","raw":7}]},"rel":{"score":84.4,"qs":[{"text":"fråga_1","raw":9},{"text":"fråga_2","raw":8},{"text":"fråga_3","raw":8},{"text":"fråga_4","raw":9},{"text":"fråga_5","raw":9}]},"info":{"score":42.2,"qs":[{"text":"fråga_1","raw":5},{"text":"fråga_2","raw":4},{"text":"fråga_3","raw":6},{"text":"fråga_4","raw":5},{"text":"fråga_5","raw":4}]},"mal":{"score":42.2,"qs":[{"text":"fråga_1","raw":5},{"text":"fråga_2","raw":4},{"text":"fråga_3","raw":5},{"text":"fråga_4","raw":6},{"text":"fråga_5","raw":4}]}},"prest":63,"ts":1782127349293}},{"key":"hpt:demo-team:resp:a66vnd38","value":{"name":"Sara Henriksson","teamCode":"demo-team","areas":{"sam":{"score":86.1,"qs":[{"text":"fråga_1","raw":9},{"text":"fråga_2","raw":9},{"text":"fråga_3","raw":8},{"text":"fråga_4","raw":9}]},"rel":{"score":68.9,"qs":[{"text":"fråga_1","raw":7},{"text":"fråga_2","raw":8},{"text":"fråga_3","raw":6},{"text":"fråga_4","raw":8},{"text":"fråga_5","raw":7}]},"info":{"score":64.4,"qs":[{"text":"fråga_1","raw":7},{"text":"fråga_2","raw":6},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":8},{"text":"fråga_5","raw":6}]},"mal":{"score":62.2,"qs":[{"text":"fråga_1","raw":7},{"text":"fråga_2","raw":6},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":7},{"text":"fråga_5","raw":6}]}},"prest":74.1,"ts":1782128146869}},{"key":"hpt:demo-team:resp:fedoh71k","value":{"name":"Johan Petersson","teamCode":"demo-team","areas":{"sam":{"score":61.1,"qs":[{"text":"fråga_1","raw":7},{"text":"fråga_2","raw":6},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":6}]},"rel":{"score":73.3,"qs":[{"text":"fråga_1","raw":8},{"text":"fråga_2","raw":7},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":8},{"text":"fråga_5","raw":8}]},"info":{"score":31.1,"qs":[{"text":"fråga_1","raw":4},{"text":"fråga_2","raw":3},{"text":"fråga_3","raw":5},{"text":"fråga_4","raw":4},{"text":"fråga_5","raw":3}]},"mal":{"score":31.1,"qs":[{"text":"fråga_1","raw":4},{"text":"fråga_2","raw":3},{"text":"fråga_3","raw":4},{"text":"fråga_4","raw":5},{"text":"fråga_5","raw":3}]}},"prest":51.9,"ts":1782127782464}},{"key":"hpt:demo-team:resp:up6tyr2r","value":{"name":"Maja Eriksson","teamCode":"demo-team","areas":{"sam":{"score":94.4,"qs":[{"text":"fråga_1","raw":10},{"text":"fråga_2","raw":9},{"text":"fråga_3","raw":10},{"text":"fråga_4","raw":9}]},"rel":{"score":88.9,"qs":[{"text":"fråga_1","raw":9},{"text":"fråga_2","raw":10},{"text":"fråga_3","raw":8},{"text":"fråga_4","raw":9},{"text":"fråga_5","raw":9}]},"info":{"score":55.6,"qs":[{"text":"fråga_1","raw":6},{"text":"fråga_2","raw":5},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":6},{"text":"fråga_5","raw":6}]},"mal":{"score":51.1,"qs":[{"text":"fråga_1","raw":6},{"text":"fråga_2","raw":5},{"text":"fråga_3","raw":6},{"text":"fråga_4","raw":6},{"text":"fråga_5","raw":5}]}},"prest":85.2,"ts":1782128819710}},{"key":"hpt:demo-team:resp:bd5vhi4j","value":{"name":"Erik Sundqvist","teamCode":"demo-team","areas":{"sam":{"score":75,"qs":[{"text":"fråga_1","raw":8},{"text":"fråga_2","raw":8},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":8}]},"rel":{"score":57.8,"qs":[{"text":"fråga_1","raw":6},{"text":"fråga_2","raw":7},{"text":"fråga_3","raw":5},{"text":"fråga_4","raw":7},{"text":"fråga_5","raw":6}]},"info":{"score":75.6,"qs":[{"text":"fråga_1","raw":8},{"text":"fråga_2","raw":7},{"text":"fråga_3","raw":8},{"text":"fråga_4","raw":9},{"text":"fråga_5","raw":7}]},"mal":{"score":73.3,"qs":[{"text":"fråga_1","raw":8},{"text":"fråga_2","raw":7},{"text":"fråga_3","raw":8},{"text":"fråga_4","raw":8},{"text":"fråga_5","raw":7}]}},"prest":70.4,"ts":1782127470600}},{"key":"hpt:demo-team:resp:uq7xvaad","value":{"name":"Lina Karlsson","teamCode":"demo-team","areas":{"sam":{"score":69.4,"qs":[{"text":"fråga_1","raw":7},{"text":"fråga_2","raw":7},{"text":"fråga_3","raw":8},{"text":"fråga_4","raw":7}]},"rel":{"score":82.2,"qs":[{"text":"fråga_1","raw":9},{"text":"fråga_2","raw":8},{"text":"fråga_3","raw":8},{"text":"fråga_4","raw":9},{"text":"fråga_5","raw":8}]},"info":{"score":44.4,"qs":[{"text":"fråga_1","raw":5},{"text":"fråga_2","raw":4},{"text":"fråga_3","raw":6},{"text":"fråga_4","raw":5},{"text":"fråga_5","raw":5}]},"mal":{"score":44.4,"qs":[{"text":"fråga_1","raw":5},{"text":"fråga_2","raw":5},{"text":"fråga_3","raw":5},{"text":"fråga_4","raw":6},{"text":"fråga_5","raw":4}]}},"prest":63,"ts":1782130405307}},{"key":"hpt:demo-team:resp:x7jnstg5","value":{"name":"David Holm","teamCode":"demo-team","areas":{"sam":{"score":72.2,"qs":[{"text":"fråga_1","raw":8},{"text":"fråga_2","raw":7},{"text":"fråga_3","raw":8},{"text":"fråga_4","raw":7}]},"rel":{"score":71.1,"qs":[{"text":"fråga_1","raw":7},{"text":"fråga_2","raw":8},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":8},{"text":"fråga_5","raw":7}]},"info":{"score":55.6,"qs":[{"text":"fråga_1","raw":6},{"text":"fråga_2","raw":6},{"text":"fråga_3","raw":6},{"text":"fråga_4","raw":7},{"text":"fråga_5","raw":5}]},"mal":{"score":62.2,"qs":[{"text":"fråga_1","raw":7},{"text":"fråga_2","raw":6},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":7},{"text":"fråga_5","raw":6}]}},"prest":66.7,"ts":1782129443402}},{"key":"hpt:demo-team:resp:y7whyi13","value":{"name":"Karin Åström","teamCode":"demo-team","areas":{"sam":{"score":83.3,"qs":[{"text":"fråga_1","raw":9},{"text":"fråga_2","raw":8},{"text":"fråga_3","raw":9},{"text":"fråga_4","raw":8}]},"rel":{"score":80,"qs":[{"text":"fråga_1","raw":8},{"text":"fråga_2","raw":9},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":9},{"text":"fråga_5","raw":8}]},"info":{"score":33.3,"qs":[{"text":"fråga_1","raw":4},{"text":"fråga_2","raw":3},{"text":"fråga_3","raw":5},{"text":"fråga_4","raw":4},{"text":"fråga_5","raw":4}]},"mal":{"score":28.9,"qs":[{"text":"fråga_1","raw":4},{"text":"fråga_2","raw":3},{"text":"fråga_3","raw":4},{"text":"fråga_4","raw":4},{"text":"fråga_5","raw":3}]}},"prest":63,"ts":1782128008133}},{"key":"hpt:demo-team:resp:pvhioilz","value":{"name":"Patrik Nordin","teamCode":"demo-team","areas":{"sam":{"score":58.3,"qs":[{"text":"fråga_1","raw":6},{"text":"fråga_2","raw":6},{"text":"fråga_3","raw":7},{"text":"fråga_4","raw":6}]},"rel":{"score":62.2,"qs":[{"text":"fråga_1","raw":7},{"text":"fråga_2","raw":6},{"text":"fråga_3","raw":6},{"text":"fråga_4","raw":7},{"text":"fråga_5","raw":7}]},"info":{"score":68.9,"qs":[{"text":"fråga_1","raw":7},{"text":"fråga_2","raw":7},{"text":"fråga_3","raw":8},{"text":"fråga_4","raw":8},{"text":"fråga_5","raw":6}]},"mal":{"score":84.4,"qs":[{"text":"fråga_1","raw":9},{"text":"fråga_2","raw":8},{"text":"fråga_3","raw":9},{"text":"fråga_4","raw":9},{"text":"fråga_5","raw":8}]}},"prest":74.1,"ts":1782129919514}}];
+
+/* ══════════════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════════════ */
+const API = "https://api.anthropic.com/v1/messages";
+const MODEL = "claude-sonnet-4-6";
+
+const AREAS = [
+  {key:"sam", name:"Teamets sammansättning",      color:"#0A434A", bench:78.1, impact:0.12,
+   questions:["Vi har rätt mix av kompetenser","Tydligt vem som ansvarar för vad","Vi har de roller vi behöver","Nya medlemmar kommer snabbt in"]},
+  {key:"rel", name:"Samarbete & relationer",       color:"#15A8B8", bench:78.5, impact:0.30,
+   questions:["Vi litar på varandra","Vi hjälper varandra vid hög belastning","Vi hanterar konflikter konstruktivt","Jag känner mig trygg att dela idéer","Vi är öppna om misstag och osäkerheter"]},
+  {key:"info",name:"Informationsdelning & kunskap",color:"#7FC4CB", bench:67.6, impact:0.25,
+   questions:["Vi delar information aktivt","Vi har tydlig struktur för kunskap","Vi delar misstag och lärdomar","Vi förbereder oss gemensamt","Vi utvärderar gemensamt efter möten"]},
+  {key:"mal", name:"Mål & riktning",               color:"#6E9E5C", bench:71.5, impact:0.48,
+   questions:["Vi har tydliga gemensamma mål","Jag förstår hur jag bidrar till målen","Vi följer upp och justerar mål","Vi är överens om prioriteringar","Det är tydligt vad som förväntas"]}
+];
+
+/* ══════════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════════ */
+const params = new URLSearchParams(location.search);
+const S = {
+  view: "entry",       // entry | loading | result | ws
+  wsTab: "workshop",   // workshop | chat
+  apiKey: "",
+  teamCode: params.get("team") || "",
+  data: null,          // loaded team data
+  err: "",
+  ws: null,            // AI workshop object
+  wsLoading: false,
+  wsErr: "",
+  chat: [],
+  chatLoading: false
+};
+
+/* ══════════════════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════════════════ */
+const san  = s => (s||"").trim().toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9\-åäö]/g,"").slice(0,40);
+const fmt  = v => v==null ? "–" : v.toFixed(1);
+const clamp= (v,a,b) => Math.max(a,Math.min(b,v));
+const mean = arr => { const v=arr.filter(x=>typeof x==="number"); return v.length?v.reduce((a,b)=>a+b,0)/v.length:null; };
+
+/* ══════════════════════════════════════════════════════════
+   DATA LOADING
+══════════════════════════════════════════════════════════ */
+async function loadData(code) {
+  S.view="loading"; S.err=""; render();
+  code = san(code);
+  if(!code){ S.view="entry"; S.err="Ange en teamkod."; render(); return; }
+  try {
+    const list = await window.storage.list(`hpt:${code}:resp:`, true);
+    const keys = (list&&list.keys)||[];
+    if(!keys.length){ S.view="entry"; S.err=`Inga svar hittades för teamkoden "${code}".`; render(); return; }
+
+    const resps=[];
+    for(const k of keys){
+      try{ const g=await window.storage.get(k,true); if(g&&g.value) resps.push(JSON.parse(g.value)); }catch(_){}
+    }
+
+    // Aggregate
+    const areas={};
+    AREAS.forEach(a=>{
+      // score — support both old (number) and new (object) storage format
+      const scores = resps.map(r=>{
+        const v = r.areas&&r.areas[a.key];
+        if(v==null) return null;
+        return typeof v==="number" ? v : (v.score!=null?v.score:null);
+      }).filter(v=>v!=null);
+
+      // per-question averages (raw 1-10 → idx)
+      const qs = a.questions.map((qt,qi)=>{
+        const raws = resps.map(r=>{
+          const v=r.areas&&r.areas[a.key];
+          if(!v||!v.qs) return null;
+          return v.qs[qi]&&typeof v.qs[qi].raw==="number"?v.qs[qi].raw:null;
+        }).filter(v=>v!=null);
+        const avg = raws.length?raws.reduce((a,b)=>a+b,0)/raws.length:null;
+        return { text:qt, score: avg!=null?+((avg-1)/9*100).toFixed(1):null };
+      });
+
+      areas[a.key]={ score:scores.length?+(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1):null, qs };
+    });
+
+    const prestArr = resps.map(r=>r.prest!=null?r.prest:null).filter(v=>v!=null);
+    const prest = prestArr.length?+(prestArr.reduce((a,b)=>a+b,0)/prestArr.length).toFixed(1):null;
+    const names = resps.map(r=>r.name).filter(Boolean);
+
+    S.data = { n:resps.length, code, areas, prest, names };
+    S.view = "result";
+  } catch(e) {
+    S.view="entry"; S.err="Kunde inte läsa data: "+e.message;
+  }
+  render();
+}
+
+/* ══════════════════════════════════════════════════════════
+   AI
+══════════════════════════════════════════════════════════ */
+async function callClaude(prompt) {
+  const res = await fetch(API,{
+    method:"POST",headers:{"Content-Type":"application/json","x-api-key":S.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:MODEL,max_tokens:1000,messages:[{role:"user",content:prompt}]})
+  });
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  const d = await res.json();
+  return (d.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("").trim();
+}
+
+const PERSONA = `Du är workshopledaren för Svenskt Kvalitetsindex tjänst "Högpresterande Team". Du kombinerar Johan Olssons elitidrottsperspektiv (OS-guld i längdskidor) med SKI:s datadrivna metod. Ton: varm, konkret, datadriven – aldrig säljig. Svara alltid på svenska. Mål & riktning och Informationsdelning & kunskap driver prestation mest men får ofta lägst betyg – det är där hävstången är störst.`;
+
+function dataContext() {
+  const d=S.data;
+  const lines = AREAS.map(a=>`- ${a.name}: ${fmt(d.areas[a.key].score)} (nationellt ${a.bench}, hävstång ${a.impact})`).join("\n");
+  return `Teamkod: ${d.code}. Antal svar: ${d.n}. Prestationsindex: ${fmt(d.prest)}/100.\nOmråden:\n${lines}`;
+}
+
+async function generateWorkshop() {
+  if(!S.apiKey){ S.wsErr="Ange en Anthropic API-nyckel på startsidan för att använda AI-workshopen."; render(); return; }
+  S.wsLoading=true; S.wsErr=""; render();
+  const prompt=`${PERSONA}\n\nResultat:\n${dataContext()}\n\nGenerera ett workshopupplägg. Svara ENBART med giltig JSON, utan kodstaket:\n{"sammanfattning":"2-3 meningar som tolkar resultatet och pekar ut hävstången","prioriteringar":[{"omrade":"exakt ett av de fyra områdesnamnen","varfor":"en mening varför","fragor":["öppen diskussionsfråga 1","fråga 2","fråga 3"]}],"elitidrott":"en konkret parallell från elitidrotten kopplad till svagaste område"}\nVälj 2 prioriteringar.`;
+  try {
+    let txt=await callClaude(prompt);
+    txt=txt.replace(/```json|```/g,"").trim();
+    const a=txt.indexOf("{"),b=txt.lastIndexOf("}");
+    if(a>=0&&b>=0) txt=txt.slice(a,b+1);
+    S.ws=JSON.parse(txt);
+    S.view="ws"; S.wsTab="workshop";
+  } catch(e) {
+    S.wsErr="Kunde inte skapa workshop just nu. ("+e.message+")";
+  }
+  S.wsLoading=false; render();
+}
+
+async function sendChat(text) {
+  if(!text||S.chatLoading) return;
+  S.chat.push({role:"user",content:text});
+  S.chatLoading=true; render();
+  const hist=S.chat.map(m=>`${m.role==="user"?"DELTAGARE":"LEDARE"}: ${m.content}`).join("\n");
+  const prompt=`${PERSONA}\n\nResultat:\n${dataContext()}\n\nSamtal:\n${hist}\n\nSvara som LEDARE. Max 120 ord. Konkret och direkt. Ren text utan markdown.`;
+  try {
+    const reply=await callClaude(prompt);
+    S.chat.push({role:"assistant",content:reply});
+  } catch(e) {
+    S.chat.push({role:"assistant",content:"Kunde inte hämta svar just nu – försök igen."});
+  }
+  S.chatLoading=false; render();
+  const inp=document.getElementById("chat-input");
+  if(inp) inp.focus();
+}
+
+/* ══════════════════════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════════════════════ */
+const app = document.getElementById("app");
+const LOGO_SVG = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M30 8a16 16 0 1 0 8 14h-8a8 8 0 1 1-4-7V8z" fill="#0A434A"/></svg>`;
+const LOGO_W   = `<svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M30 8a16 16 0 1 0 8 14h-8a8 8 0 1 1-4-7V8z" fill="#fff"/></svg>`;
+const REFRESH_ICO = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M13 7a6 6 0 1 1-1.3-3.7M13 2v4H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function render() {
+  const showTopbar = S.view==="result"||S.view==="ws";
+  const d = S.data;
+
+  let topbar = "";
+  if(showTopbar) {
+    topbar = `<div class="topbar">
+      <div class="logo">${LOGO_W}</div>
+      <span class="topbar-title">HPT<span class="topbar-team">${d?` · ${d.code}`:""}</span></span>
+      <div class="topbar-right">
+        <button class="tab-btn${S.view==="result"?" active":""}" id="tab-result">Resultat</button>
+        ${S.ws?`<button class="tab-btn${S.view==="ws"?" active":""}" id="tab-ws">Workshop</button>`:""}
+        <button class="refresh-btn" id="btn-refresh">${REFRESH_ICO} Uppdatera</button>
+      </div>
+    </div>`;
+  }
+
+  let body = "";
+  if(S.view==="entry")   body = renderEntry();
+  if(S.view==="loading") body = renderLoading();
+  if(S.view==="result")  body = renderResult();
+  if(S.view==="ws")      body = renderWS();
+
+  app.innerHTML = topbar + body;
+  bindAll();
+
+  // Animate bars after render
+  if(S.view==="result") {
+    requestAnimationFrame(()=>{
+      document.querySelectorAll("[data-w]").forEach(el=>{
+        el.style.width = el.getAttribute("data-w")+"%";
+      });
+      // circle
+      const circle = document.getElementById("circle-fill");
+      if(circle) {
+        const r=parseFloat(circle.getAttribute("data-r"));
+        const pct=parseFloat(circle.getAttribute("data-pct"));
+        const circ=2*Math.PI*r;
+        circle.style.strokeDasharray=circ;
+        circle.style.strokeDashoffset=circ*(1-pct/100);
+      }
+    });
+  }
+}
+
+/* ── ENTRY ───────────────────────────────────────────────── */
+function renderEntry() {
+  return `<div class="entry">
+    <div class="entry-logo">${LOGO_W}</div>
+    <h1>Teamets resultat</h1>
+    <p>Ange teamkoden för att ladda in alla svar och se det samlade resultatet.</p>
+    <div class="entry-card">
+      <div class="field">
+        <label for="tc-entry">Teamkod</label>
+        <input id="tc-entry" type="text" placeholder="t.ex. saljteam-sthlm" value="${S.teamCode}" autocomplete="off">
+      </div>
+      <div class="field" style="margin-top:14px">
+        <label for="apikey">Anthropic API-nyckel <span style="font-weight:400;text-transform:none;letter-spacing:0">(för AI-workshop)</span></label>
+        <input id="apikey" type="password" placeholder="sk-ant-..." autocomplete="off" value="${S.apiKey}">
+        <p class="hint" style="margin-top:6px">Nyckeln lagras bara i minnet — aldrig i filen.</p>
+      </div>
+      <button class="btn-primary" id="btn-load" ${S.teamCode.trim()?"":"disabled"}>Hämta resultat</button>
+      <button class="btn-demo" id="btn-demo">✨ Ladda demodata — 10 medarbetare</button>
+      ${S.err?`<div class="err">${S.err}</div>`:""}
+    </div>
+  </div>`;
+}
+
+/* ── LOADING ─────────────────────────────────────────────── */
+function renderLoading() {
+  return `<div class="loading"><div class="spin"></div><p>Hämtar svar för <strong>${S.teamCode}</strong>…</p></div>`;
+}
+
+/* ── RESULT ──────────────────────────────────────────────── */
+function renderResult() {
+  const d=S.data;
+  const prest=d.prest!=null?d.prest:0;
+  const pct=clamp(prest,0,100);
+  const r=42; const circ=2*Math.PI*r;
+
+  // Insight: find the two high-leverage low-score areas
+  const ranked=[...AREAS].map(a=>({a,v:d.areas[a.key].score}))
+    .filter(x=>x.v!=null)
+    .sort((x,y)=>(x.v-x.a.impact*40)-(y.v-y.a.impact*40));
+  const topPrio = ranked[0];
+  const insightText = topPrio
+    ? `${topPrio.a.name} är ert viktigaste förbättringsområde — det har störst påverkan på prestation (${(topPrio.a.impact*100).toFixed(0)}%) och ert betyg på ${fmt(topPrio.v)} ligger ${topPrio.v<topPrio.a.bench?"under":"nära"} det nationella snittet på ${topPrio.a.bench}. Det är här ni har störst hävstång.`
+    : "Kör AI-workshopen för att få en analys av var ni har störst hävstång.";
+
+  const areaCols = AREAS.map(a=>{
+    const ad=d.areas[a.key];
+    const score=ad.score!=null?ad.score:0;
+    const fillW=clamp(score,0,100);
+    const benchW=clamp(a.bench,0,100);
+    const qs=(ad.qs||[]).map(q=>{
+      if(q.score==null) return "";
+      const qw=clamp(q.score,0,100);
+      return `<div class="q-item">
+        <div class="q-item-label">${q.text}</div>
+        <div class="q-item-bar"><div class="q-item-fill" data-w="${qw}" style="width:0%;background:${a.color}"></div></div>
+        <div class="q-item-score">${q.score.toFixed(1)}</div>
+      </div>`;
+    }).join("");
+    return `<div class="area-card">
+      <div class="area-head" style="background:${a.color}">
+        <div class="area-score">${fmt(ad.score)}</div>
+        <div class="area-name-block">
+          <div class="area-label">Betyg 0–100</div>
+          <div class="area-name-text">${a.name}</div>
+        </div>
+      </div>
+      <div class="area-body">
+        <div class="bench-row"><span>Ert betyg</span><span>Nationellt: ${a.bench}</span></div>
+        <div class="bar-track">
+          <div class="bar-fill" data-w="${fillW}" style="width:0%;background:${a.color}"></div>
+          <div class="bar-bench" style="left:${benchW}%"></div>
+        </div>
+        ${qs?`<div class="qs-list">${qs}</div>`:""}
+      </div>
+    </div>`;
+  }).join("");
+
+  const namesStr = d.names.length
+    ? d.names.slice(0,10).join(", ")+(d.names.length>10?" m.fl.":"")
+    : "–";
+
+  return `<div class="page">
+    <div class="result-hero">
+      <div class="circle-wrap">
+        <svg viewBox="0 0 100 100">
+          <circle class="circle-bg" cx="50" cy="50" r="${r}"/>
+          <circle class="circle-fill" id="circle-fill" cx="50" cy="50" r="${r}"
+            data-r="${r}" data-pct="${pct}"
+            style="stroke-dasharray:${circ};stroke-dashoffset:${circ}"/>
+        </svg>
+        <div class="circle-text">
+          <div class="circle-num">${fmt(d.prest)}</div>
+          <div class="circle-lbl">Prestations&shy;index</div>
+        </div>
+      </div>
+      <div class="hero-meta">
+        <div class="team-chip">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="4.5" cy="3.5" r="2.2" stroke="currentColor" stroke-width="1.3"/><circle cx="9.5" cy="4.5" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M.5 11c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M9.5 8.5c1.5 0 2.5 1.1 2.5 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          ${d.code}
+        </div>
+        <h2>Teamets samlade resultat</h2>
+        <p class="desc">Prestationsindexet mäter hur nöjda, förväntansuppfyllda och nära ett högpresterande team medarbetarna upplever sig vara. Skala 0–100 där den lodräta linjen i staplarna visar nationellt snitt.</p>
+        <div class="n-badge"><strong>${d.n}</strong> svar · ${namesStr}</div>
+      </div>
+    </div>
+
+    <div class="area-grid">${areaCols}</div>
+
+    <div class="insight-band">
+      <div class="insight-icon">🎯</div>
+      <div class="insight-text">
+        <h3>Var är hävstången störst?</h3>
+        <p>${insightText}</p>
+      </div>
+    </div>
+
+    <button class="ws-trigger" id="btn-ws" ${S.wsLoading?"disabled":""}>
+      ${S.wsLoading?`<span class="spin-sm"></span> Skapar workshopupplägg…`:`✦ Skapa AI-workshopupplägg utifrån resultatet`}
+    </button>
+    ${S.wsErr?`<div class="err" style="margin-bottom:16px">${S.wsErr}</div>`:""}
+  </div>`;
+}
+
+/* ── WORKSHOP ────────────────────────────────────────────── */
+function renderWS() {
+  const w=S.ws;
+  const AREA_COLS={sam:"#0A434A",rel:"#15A8B8",info:"#7FC4CB",mal:"#6E9E5C"};
+  const AREA_KEYS={
+    "teamets sammansättning":"sam","samarbete & relationer":"rel",
+    "informationsdelning & kunskap":"info","mål & riktning":"mal"
+  };
+
+  const workshopContent = w ? `
+    <div class="ws-summary">${w.sammanfattning||""}</div>
+    ${(w.prioriteringar||[]).map(p=>{
+      const key=AREA_KEYS[(p.omrade||"").toLowerCase()]||"sam";
+      const col=AREA_COLS[key];
+      const qs=(p.fragor||[]).map((q,i)=>`<div class="disc-q"><span class="dq-num">${i+1}.</span><span>${q}</span></div>`).join("");
+      return `<div class="prio-block">
+        <div class="prio-head"><span class="prio-pip" style="background:${col}"></span><span class="prio-name">${p.omrade||""}</span></div>
+        <div class="prio-why">${p.varfor||""}</div>
+        <div class="prio-qs">${qs}</div>
+      </div>`;
+    }).join("")}
+    ${w.elitidrott?`<div class="sport-block">
+      <div class="sport-icon">🎿</div>
+      <div><h4>Från elitidrotten</h4><p>${w.elitidrott}</p></div>
+    </div>`:""}
+  ` : `<div style="color:var(--muted);text-align:center;padding:40px">Laddar workshopupplägg…</div>`;
+
+  const chatContent = `
+    ${S.chat.length===0?`<div class="suggestions">
+      <button class="sug" data-ask="Vilken fråga ska vi börja workshopen med?">Var börjar vi?</button>
+      <button class="sug" data-ask="Ge oss en konkret övning för det svagaste området.">En övning</button>
+      <button class="sug" data-ask="Hur kopplar resultatet till kundnöjdhet?">Koppling till kund</button>
+      <button class="sug" data-ask="Vad kan vi göra annorlunda redan imorgon?">Imorgon direkt</button>
+    </div>`:""}
+    <div class="chat-log" id="chat-log">
+      ${S.chat.map(m=>`<div class="bub ${m.role==="user"?"u":"a"}">${m.content}</div>`).join("")}
+      ${S.chatLoading?`<div class="bub a thinking">…</div>`:""}
+    </div>
+    <div class="chat-bar">
+      <input class="chat-input" id="chat-input" type="text" placeholder="Skriv en fråga om resultatet…" ${S.chatLoading?"disabled":""}>
+      <button class="send-btn" id="btn-send" ${S.chatLoading?"disabled":""}>Skicka</button>
+    </div>
+    <p class="chat-note">AI:n känner till teamets resultat och workshopupplägget.</p>`;
+
+  return `<div class="page">
+    <div class="ws-panel">
+      <div class="ws-tabs">
+        <button class="ws-tab${S.wsTab==="workshop"?" active":""}" id="wstab-workshop">Workshopupplägg</button>
+        <button class="ws-tab${S.wsTab==="chat"?" active":""}" id="wstab-chat">Frågestund</button>
+      </div>
+      <div class="ws-content">
+        ${S.wsTab==="workshop"?workshopContent:chatContent}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BIND
+══════════════════════════════════════════════════════════ */
+
+function loadDemo() {
+  const resps = DEMO_DATA.map(r => r.value);
+  const AREA_KEYS = ["sam","rel","info","mal"];
+  const areas = {};
+  AREA_KEYS.forEach(key => {
+    const scores = resps.map(r => r.areas[key] && r.areas[key].score).filter(v => typeof v === "number");
+    const qCount = resps[0].areas[key].qs.length;
+    const qs = Array.from({length: qCount}, (_, qi) => {
+      const raws = resps.map(r => r.areas[key].qs[qi] && r.areas[key].qs[qi].raw).filter(v => typeof v === "number");
+      const avg = raws.length ? raws.reduce((a,b)=>a+b,0)/raws.length : null;
+      return { text: resps[0].areas[key].qs[qi].text, score: avg != null ? +((avg-1)/9*100).toFixed(1) : null };
+    });
+    areas[key] = { score: scores.length ? +(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : null, qs };
+  });
+  const prestArr = resps.map(r => r.prest).filter(v => typeof v === "number");
+  const prest = prestArr.length ? +(prestArr.reduce((a,b)=>a+b,0)/prestArr.length).toFixed(1) : null;
+  S.data = { n: resps.length, code: "demo-team", areas, prest, names: resps.map(r=>r.name).filter(Boolean) };
+  S.teamCode = "demo-team";
+  S.view = "result";
+  render();
+}
+
+function bindAll() {
+  /* ENTRY */
+  const tce=document.getElementById("tc-entry");
+  const bload=document.getElementById("btn-load");
+  if(tce){ tce.addEventListener("input",()=>{ S.teamCode=tce.value; if(bload) bload.disabled=!S.teamCode.trim(); }); }
+  const ak=document.getElementById("apikey");
+  if(ak){ ak.value=S.apiKey; ak.addEventListener("input",()=>{ S.apiKey=ak.value.trim(); }); }
+  if(bload){ bload.addEventListener("click",()=>{ if(S.teamCode.trim()) loadData(S.teamCode); }); }
+  const bdemo=document.getElementById("btn-demo");
+  if(bdemo) bdemo.addEventListener("click",loadDemo);
+
+  /* TOPBAR TABS */
+  const tr=document.getElementById("tab-result");
+  const tw=document.getElementById("tab-ws");
+  const ref=document.getElementById("btn-refresh");
+  if(tr) tr.addEventListener("click",()=>{ S.view="result"; render(); });
+  if(tw) tw.addEventListener("click",()=>{ S.view="ws"; render(); });
+  if(ref) ref.addEventListener("click",()=>{ if(S.data) loadData(S.data.code); });
+
+  /* WORKSHOP TRIGGER */
+  const bws=document.getElementById("btn-ws");
+  if(bws) bws.addEventListener("click",generateWorkshop);
+
+  /* WS TABS */
+  const wt1=document.getElementById("wstab-workshop");
+  const wt2=document.getElementById("wstab-chat");
+  if(wt1) wt1.addEventListener("click",()=>{ S.wsTab="workshop"; render(); });
+  if(wt2) wt2.addEventListener("click",()=>{ S.wsTab="chat"; render(); });
+
+  /* SUGGESTIONS */
+  document.querySelectorAll("[data-ask]").forEach(b=>{
+    b.addEventListener("click",()=>sendChat(b.getAttribute("data-ask")));
+  });
+
+  /* CHAT */
+  const ci=document.getElementById("chat-input");
+  const cs=document.getElementById("btn-send");
+  if(ci){ ci.addEventListener("keydown",e=>{ if(e.key==="Enter"&&ci.value.trim()){ const t=ci.value.trim(); ci.value=""; sendChat(t); } }); }
+  if(cs){ cs.addEventListener("click",()=>{ if(ci&&ci.value.trim()){ const t=ci.value.trim(); ci.value=""; sendChat(t); } }); }
+
+  /* Scroll chat to bottom */
+  const log=document.getElementById("chat-log");
+  if(log) log.scrollTop=log.scrollHeight;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BOOT
+══════════════════════════════════════════════════════════ */
+const initTeam = san(params.get("team")||"");
+if(initTeam){ S.teamCode=initTeam; loadData(initTeam); }
+else render();
+</script>
+</body>
+</html>

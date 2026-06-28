@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Högpresterande Team – Svenskt Kvalitetsindex</title>
+<meta name="description" content="Mät vad som faktiskt driver prestation i ditt team. En analystjänst från Svenskt Kvalitetsindex med Johan Olsson.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+
+:root {
+  --p:    #0A434A;
+  --p2:   #0E5A63;
+  --p3:   #EAF2F2;
+  --gold: #E0BD5E;
+  --terra:#C46B38;
+  --ink:  #0F1F22;
+  --muted:#5C7A7E;
+  --border:#D5E2E3;
+  --bg:   #F3F6F6;
+  --card: #fff;
+  --col-sam: #0A434A;
+  --col-rel: #15A8B8;
+  --col-info:#7FC4CB;
+  --col-mal: #6E9E5C;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: Inter, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+
+/* ── TOPBAR ─────────────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--p);
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px clamp(20px,4vw,48px);
+}
+.topbar-logo {
+  width: 30px; height: 30px; background: #fff;
+  border-radius: 3px; display: grid; place-items: center; flex-shrink: 0;
+}
+.topbar-logo svg { width: 20px; height: 20px; }
+.topbar-brand { font-weight: 800; font-size: 14px; letter-spacing: .1em; color: #fff; }
+.topbar-right { margin-left: auto; display: flex; gap: 8px; }
+.topbar-link {
+  padding: 8px 14px; border-radius: 4px; font-size: 13px; font-weight: 700;
+  color: rgba(255,255,255,.75); transition: color .15s, background .15s;
+}
+.topbar-link:hover { color: #fff; background: rgba(255,255,255,.1); }
+.topbar-link.primary {
+  background: var(--gold); color: var(--ink);
+}
+.topbar-link.primary:hover { filter: brightness(1.06); background: var(--gold); color: var(--ink); }
+
+/* ── HERO ────────────────────────────────────────────────── */
+.hero {
+  background: var(--p);
+  min-height: clamp(480px, 70vh, 760px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  position: relative;
+}
+.hero-left {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: clamp(40px,6vw,80px) clamp(24px,5vw,64px);
+  color: #fff; position: relative; z-index: 2;
+}
+.hero-eyebrow {
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--gold); font-weight: 700; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-eyebrow::before {
+  content: ""; display: block; width: 24px; height: 2px; background: var(--gold);
+}
+.hero-h1 {
+  font-size: clamp(32px, 5.5vw, 62px);
+  font-weight: 900; line-height: 1.02;
+  letter-spacing: -.02em;
+  margin-bottom: 24px;
+}
+.hero-h1 em { font-style: normal; color: var(--gold); }
+.hero-quote {
+  border-left: 3px solid var(--gold);
+  padding-left: 18px;
+  margin-bottom: 36px;
+}
+.hero-quote blockquote {
+  font-size: clamp(15px, 2vw, 18px);
+  line-height: 1.6; font-style: italic;
+  opacity: .92; max-width: 44ch;
+}
+.hero-quote cite {
+  display: block; margin-top: 10px;
+  font-style: normal; font-size: 13px; opacity: .65; font-weight: 600;
+}
+.hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-gold {
+  padding: 15px 24px; border-radius: 5px;
+  background: var(--gold); color: var(--ink);
+  font-size: 15px; font-weight: 800; letter-spacing: .02em;
+  transition: filter .15s; border: none; cursor: pointer; font-family: inherit;
+}
+.btn-gold:hover { filter: brightness(1.07); }
+.btn-ghost {
+  padding: 15px 24px; border-radius: 5px;
+  background: transparent; color: #fff;
+  font-size: 15px; font-weight: 700;
+  border: 1.5px solid rgba(255,255,255,.3);
+  transition: border-color .15s; cursor: pointer; font-family: inherit;
+}
+.btn-ghost:hover { border-color: rgba(255,255,255,.7); }
+
+/* Johan photo — right half of hero */
+.hero-right {
+  position: relative; overflow: hidden;
+}
+.hero-right::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, var(--p) 0%, transparent 30%);
+  z-index: 1;
+}
+.hero-photo {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: top center;
+  filter: saturate(.9);
+}
+/* Fallback illustrated silhouette if no photo */
+.hero-illus {
+  width: 100%; height: 100%;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 0;
+}
+.hero-illus svg { width: 75%; height: auto; }
+
+/* ── STAT BAND ───────────────────────────────────────────── */
+.statband {
+  background: var(--p2);
+  display: flex; justify-content: center; flex-wrap: wrap;
+  gap: 0;
+}
+.stat-item {
+  padding: clamp(18px,3vw,28px) clamp(28px,5vw,56px);
+  text-align: center; color: #fff;
+  border-right: 1px solid rgba(255,255,255,.12);
+}
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-size: clamp(28px,4vw,42px); font-weight: 900;
+  line-height: 1; color: var(--gold);
+}
+.stat-lbl {
+  font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+  opacity: .75; margin-top: 6px;
+}
+
+/* ── SECTION SHARED ──────────────────────────────────────── */
+.section { padding: clamp(48px,7vw,96px) clamp(20px,4vw,48px); }
+.section-inner { max-width: 1080px; margin: 0 auto; }
+.section-eyebrow {
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--p2); font-weight: 700; margin-bottom: 12px;
+}
+.section-h2 {
+  font-size: clamp(26px,4vw,42px); font-weight: 800;
+  line-height: 1.1; letter-spacing: -.01em;
+  margin-bottom: 16px;
+}
+.section-lead {
+  font-size: clamp(15px,2vw,18px); color: var(--muted);
+  max-width: 60ch; line-height: 1.65; margin-bottom: clamp(32px,5vw,56px);
+}
+
+/* ── HOW IT WORKS ────────────────────────────────────────── */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  background: var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.step {
+  background: var(--card);
+  padding: clamp(20px,3vw,32px);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.step-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--p); color: #fff;
+  display: grid; place-items: center;
+  font-size: 14px; font-weight: 800; flex-shrink: 0;
+}
+.step-title { font-size: 16px; font-weight: 800; }
+.step-desc { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+/* ── INSIGHT SECTION ─────────────────────────────────────── */
+.insight-section { background: var(--p); color: #fff; }
+.insight-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px,5vw,64px);
+  align-items: center;
+}
+.insight-left h2 { color: #fff; }
+.insight-left .section-lead { color: rgba(255,255,255,.75); }
+.insight-chart {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.chart-row { }
+.chart-label {
+  display: flex; justify-content: space-between;
+  font-size: 13px; margin-bottom: 5px;
+}
+.chart-label .name { font-weight: 700; }
+.chart-label .val { font-weight: 800; color: var(--gold); }
+.chart-label .bench { color: rgba(255,255,255,.5); font-size: 12px; }
+.chart-track {
+  height: 8px; background: rgba(255,255,255,.1); border-radius: 99px;
+  position: relative; overflow: visible;
+}
+.chart-fill {
+  height: 100%; border-radius: 99px;
+  transition: width 1s ease;
+}
+.chart-bench {
+  position: absolute; top: -3px; bottom: -3px;
+  width: 2px; border-radius: 2px; background: rgba(255,255,255,.35);
+}
+.insight-caption {
+  margin-top: 18px; font-size: 13px;
+  color: rgba(255,255,255,.6); line-height: 1.6;
+}
+.insight-caption strong { color: var(--gold); }
+
+/* ── JOHAN SECTION ───────────────────────────────────────── */
+.johan-section { background: var(--card); }
+.johan-grid {
+  display: grid; grid-template-columns: 340px 1fr; gap: clamp(32px,5vw,64px);
+  align-items: start;
+}
+.johan-photo-wrap {
+  border-radius: 8px; overflow: hidden;
+  background: var(--p3);
+  aspect-ratio: 3/4;
+  display: flex; align-items: center; justify-content: center;
+}
+.johan-photo-wrap img {
+  width: 100%; height: 100%; object-fit: cover; object-position: top;
+}
+/* Illustrated placeholder */
+.johan-illus { width: 80%; }
+.johan-meta { padding-top: 8px; }
+.johan-meta h2 { margin-bottom: 16px; }
+.medals {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.medal {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--p3); border-radius: 99px;
+  padding: 6px 12px; font-size: 13px; font-weight: 700; color: var(--p);
+}
+.johan-bio {
+  font-size: clamp(15px,1.8vw,17px); color: var(--muted);
+  line-height: 1.7; margin-bottom: 24px; max-width: 56ch;
+}
+.pull-quote {
+  background: var(--p); color: #fff;
+  border-radius: 6px; padding: 20px 22px;
+  font-size: clamp(15px,1.8vw,17px); font-style: italic;
+  line-height: 1.6; position: relative;
+}
+.pull-quote::before {
+  content: "\201C";
+  font-size: 64px; line-height: .8;
+  color: var(--gold); font-style: normal;
+  display: block; margin-bottom: 4px; font-weight: 900;
+}
+
+/* ── CTA SECTION ─────────────────────────────────────────── */
+.cta-section {
+  background: var(--bg);
+  text-align: center;
+}
+.cta-cards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  max-width: 720px; margin: 0 auto;
+}
+.cta-card {
+  background: var(--card); border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(10,35,40,.05), 0 8px 24px rgba(10,35,40,.08);
+  padding: clamp(24px,3vw,36px);
+  display: flex; flex-direction: column; gap: 14px;
+  text-align: left;
+}
+.cta-icon {
+  width: 48px; height: 48px; border-radius: 8px;
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.cta-card h3 { font-size: 18px; font-weight: 800; }
+.cta-card p { font-size: 14px; color: var(--muted); line-height: 1.6; flex: 1; }
+.cta-card .teamcode-wrap {
+  display: flex; gap: 8px;
+}
+.cta-card input {
+  flex: 1; padding: 11px 13px;
+  border: 1.5px solid var(--border); border-radius: 5px;
+  font-size: 15px; font-family: inherit; color: var(--ink);
+}
+.cta-card input:focus { outline: 2px solid var(--p2); outline-offset: 1px; }
+.btn-cta-primary {
+  padding: 13px 18px; border-radius: 5px;
+  background: var(--p); color: #fff;
+  font-size: 15px; font-weight: 800; font-family: inherit;
+  border: none; cursor: pointer; transition: filter .15s; white-space: nowrap;
+}
+.btn-cta-primary:hover { filter: brightness(1.08); }
+.btn-cta-secondary {
+  padding: 13px 18px; border-radius: 5px;
+  background: var(--p3); color: var(--p);
+  font-size: 15px; font-weight: 800; font-family: inherit;
+  border: none; cursor: pointer; transition: filter .15s;
+}
+.btn-cta-secondary:hover { filter: brightness(.96); }
+.cta-note { font-size: 13px; color: var(--muted); margin-top: 16px; }
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+footer {
+  background: var(--p);
+  color: rgba(255,255,255,.6);
+  padding: 32px clamp(20px,4vw,48px);
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  font-size: 13px;
+}
+footer .f-brand { color: #fff; font-weight: 700; margin-right: auto; }
+footer a { color: rgba(255,255,255,.6); }
+footer a:hover { color: #fff; }
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-right { height: 340px; }
+  .steps { grid-template-columns: 1fr 1fr; }
+  .insight-grid { grid-template-columns: 1fr; }
+  .johan-grid { grid-template-columns: 1fr; }
+  .johan-photo-wrap { max-width: 280px; }
+  .cta-cards { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .steps { grid-template-columns: 1fr; }
+  .statband { flex-direction: column; }
+  .stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,.12); }
+  .cta-card .teamcode-wrap { flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-logo">
+    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <path d="M30 8a16 16 0 1 0 8 14h-8a8 8 0 1 1-4-7V8z" fill="#0A434A"/>
+    </svg>
+  </div>
+  <span class="topbar-brand">Svenskt Kvalitetsindex</span>
+  <nav class="topbar-right">
+    <a href="#hur" class="topbar-link">Så funkar det</a>
+    <a href="#johan" class="topbar-link">Johan Olsson</a>
+    <a href="#starta" class="topbar-link primary">Starta enkäten</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <p class="hero-eyebrow">Högpresterande Team · Svenskt Kvalitetsindex</p>
+    <h1 class="hero-h1">Vad gör ett team<br><em>verkligt</em><br>högpresterande?</h1>
+    <div class="hero-quote">
+      <blockquote>
+        Jag har vunnit OS-guld och ändå känt att vi misslyckades som lag. Det är då man förstår att resultat och prestation inte är samma sak.
+      </blockquote>
+      <cite>Johan Olsson — OS-guld 2010 &amp; 2014, projektledare SKI</cite>
+    </div>
+    <div class="hero-ctas">
+      <a href="#starta" class="btn-gold">Svara på enkäten</a>
+      <a href="HPT_resultat.html" class="btn-ghost">Visa resultat</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <!-- Johan Olsson photo — replace src with actual photo path -->
+    <img class="hero-photo"
+      src="johan_olsson.jpg"
+      alt="Johan Olsson, projektledare Svenskt Kvalitetsindex"
+      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+    <!-- SVG fallback if no photo -->
+    <div class="hero-illus" style="display:none">
+      <svg viewBox="0 0 300 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Stylized skier silhouette -->
+        <ellipse cx="170" cy="80" rx="38" ry="38" fill="rgba(255,255,255,.12)"/>
+        <path d="M170 118 L155 220 L130 340 L110 420" stroke="rgba(255,255,255,.2)" stroke-width="18" stroke-linecap="round"/>
+        <path d="M170 118 L185 220 L210 300" stroke="rgba(255,255,255,.2)" stroke-width="16" stroke-linecap="round"/>
+        <path d="M80 260 L155 220 L240 200" stroke="rgba(255,255,255,.15)" stroke-width="10" stroke-linecap="round"/>
+        <!-- Ski poles -->
+        <line x1="130" y1="180" x2="90" y2="320" stroke="rgba(255,255,255,.15)" stroke-width="5" stroke-linecap="round"/>
+        <line x1="210" y1="180" x2="240" y2="310" stroke="rgba(255,255,255,.15)" stroke-width="5" stroke-linecap="round"/>
+        <!-- Gold medal hint -->
+        <circle cx="170" cy="148" r="10" fill="none" stroke="#E0BD5E" stroke-width="2.5"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- STAT BAND -->
+<div class="statband">
+  <div class="stat-item">
+    <div class="stat-num">1 007</div>
+    <div class="stat-lbl">Svenska respondenter</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">4</div>
+    <div class="stat-lbl">Mätområden</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">0,48</div>
+    <div class="stat-lbl">Mål &amp; riktning driver prestation mest</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">95 000 kr</div>
+    <div class="stat-lbl">Komplett tjänst inkl. workshop</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="hur">
+  <div class="section-inner">
+    <p class="section-eyebrow">Så fungerar tjänsten</p>
+    <h2 class="section-h2">Från enkät till insikt<br>på en halvdag</h2>
+    <p class="section-lead">SKI:s metodik kombinerad med Johan Olssons erfarenhet från 20 år på elitnivå. Data som ger samtal — inte rapporter som samlar damm.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Enkätstudie</div>
+        <p class="step-desc">Teamet svarar digitalt på frågor om sammansättning, samarbete, informationsdelning och mål. Tar 4 minuter.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Resultatanalys</div>
+        <p class="step-desc">SKI aggregerar svaren och jämför mot nationellt benchmarkdata från 1 007 respondenter.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Workshop med Johan</div>
+        <p class="step-desc">Johan Olsson presenterar resultaten live och väver in konkreta paralleller från elitidrotten.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">Rekommendationer</div>
+        <p class="step-desc">Teamet lämnar med konkreta förbättringsområden, diskussionsfrågor och en gemensam bild av nuläget.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DATA INSIGHT -->
+<section class="section insight-section">
+  <div class="section-inner">
+    <div class="insight-grid">
+      <div class="insight-left">
+        <p class="section-eyebrow" style="color:var(--gold)">Vad data visar</p>
+        <h2 class="section-h2">Svenska team är starka på relationer — men tappar på det som driver prestation mest</h2>
+        <p class="section-lead">Mål &amp; riktning och Informationsdelning har störst påverkan på prestation. De får också lägst betyg nationellt. Det är där hävstången är störst.</p>
+      </div>
+      <div class="insight-chart" id="insight-chart">
+        <div class="chart-row" data-fill="78.1" data-color="var(--col-sam)" data-bench="78.1">
+          <div class="chart-label">
+            <span class="name">Teamets sammansättning</span>
+            <span><span class="val">78,1</span></span>
+          </div>
+          <div class="chart-track">
+            <div class="chart-fill" style="width:0%;background:var(--col-sam)"></div>
+            <div class="chart-bench" style="left:78.1%"></div>
+          </div>
+        </div>
+        <div class="chart-row" data-fill="78.5" data-color="var(--col-rel)" data-bench="78.5">
+          <div class="chart-label">
+            <span class="name">Samarbete &amp; relationer</span>
+            <span><span class="val">78,5</span></span>
+          </div>
+          <div class="chart-track">
+            <div class="chart-fill" style="width:0%;background:var(--col-rel)"></div>
+            <div class="chart-bench" style="left:78.5%"></div>
+          </div>
+        </div>
+        <div class="chart-row" data-fill="67.6" data-color="var(--col-info)" data-bench="67.6">
+          <div class="chart-label">
+            <span class="name">Informationsdelning &amp; kunskap</span>
+            <span><span class="val">67,6</span></span>
+          </div>
+          <div class="chart-track">
+            <div class="chart-fill" style="width:0%;background:var(--col-info)"></div>
+            <div class="chart-bench" style="left:67.6%"></div>
+          </div>
+        </div>
+        <div class="chart-row" data-fill="71.5" data-color="var(--col-mal)" data-bench="71.5">
+          <div class="chart-label">
+            <span class="name">Mål &amp; riktning</span>
+            <span><span class="val">71,5</span></span>
+          </div>
+          <div class="chart-track">
+            <div class="chart-fill" style="width:0%;background:var(--col-mal)"></div>
+            <div class="chart-bench" style="left:71.5%"></div>
+          </div>
+        </div>
+        <p class="insight-caption">Nationella snitt från SKI:s studie, n=1 007. <strong>Mål &amp; riktning</strong> driver prestation med en vikt på 0,48 — nästan fyra gånger mer än Teamets sammansättning.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JOHAN -->
+<section class="section johan-section" id="johan">
+  <div class="section-inner">
+    <div class="johan-grid">
+      <div class="johan-photo-wrap">
+        <img src="johan_olsson.jpg" alt="Johan Olsson"
+          onerror="this.style.display='none'">
+      </div>
+      <div class="johan-meta">
+        <p class="section-eyebrow">Möt Johan Olsson</p>
+        <h2 class="section-h2">20 år på elitnivå.<br>Nu mäter han det.</h2>
+        <div class="medals">
+          <span class="medal">🥇 OS-guld Vancouver 2010</span>
+          <span class="medal">🥇 OS-guld Sochi 2014</span>
+          <span class="medal">🎿 VM-guld</span>
+        </div>
+        <p class="johan-bio">Johan Olsson är en av Sveriges mest framgångsrika längdskidåkare genom tiderna. I dag arbetar han som projektledare på Svenskt Kvalitetsindex och leder utvecklingen av tjänsten Högpresterande Team — där han kombinerar elitidrottens logik med SKI:s datadrivna metodik.</p>
+        <div class="pull-quote">
+          De team som presterar när det gäller är inte de som aldrig misslyckas. Det är de som hanterar motgångar snabbare och bättre än alla andra. Det ser vi i data. Och jag har sett det i skidspåret.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section cta-section" id="starta">
+  <div class="section-inner" style="text-align:center">
+    <p class="section-eyebrow" style="text-align:center">Kom igång</p>
+    <h2 class="section-h2" style="text-align:center">Redo att mäta<br>ert team?</h2>
+    <p class="section-lead" style="margin:0 auto clamp(32px,4vw,48px)">Välj hur du vill starta. Enkäten tar 4 minuter — resultaten och AI-workshopen är redo direkt efteråt.</p>
+    <div class="cta-cards">
+      <div class="cta-card">
+        <div class="cta-icon" style="background:var(--p3)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" stroke="#0A434A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 12h6M9 16h4" stroke="#0A434A" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Svara på enkäten</h3>
+        <p>Ange er teamkod — alla i teamet svarar med samma kod så att resultaten räknas ihop.</p>
+        <div class="teamcode-wrap">
+          <input id="tc-input" type="text" placeholder="Teamkod, t.ex. alfa-team">
+          <button class="btn-cta-primary" id="btn-enkat">Starta →</button>
+        </div>
+      </div>
+      <div class="cta-card">
+        <div class="cta-icon" style="background:#FDF3E3">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" stroke="#C46B38" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Visa resultat &amp; workshop</h3>
+        <p>Se teamets samlade resultat, jämför mot nationellt snitt och kör AI-workshopen med Johan som guide.</p>
+        <button class="btn-cta-secondary" id="btn-resultat">Öppna resultatvyn →</button>
+      </div>
+    </div>
+    <p class="cta-note">Kostnadsfritt att testa · Komplett tjänst inkl. workshop 95 000 kr · <a href="mailto:johan.olsson@kvalitetsindex.se">Kontakta Johan Olsson</a></p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="f-brand">Svenskt Kvalitetsindex · Högpresterande Team</span>
+  <a href="mailto:johan.olsson@kvalitetsindex.se">johan.olsson@kvalitetsindex.se</a>
+  <span>070 222 4906</span>
+  <span>© 2026</span>
+</footer>
+
+<script>
+/* ── CTA NAVIGATION ──────────────────────────────────────── */
+document.getElementById("btn-enkat").addEventListener("click", () => {
+  const tc = document.getElementById("tc-input").value.trim();
+  const url = tc ? `HPT_enkat.html?team=${encodeURIComponent(tc)}` : "HPT_enkat.html";
+  location.href = url;
+});
+document.getElementById("tc-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("btn-enkat").click();
+});
+document.getElementById("btn-resultat").addEventListener("click", () => {
+  const tc = document.getElementById("tc-input").value.trim();
+  const url = tc ? `HPT_resultat.html?team=${encodeURIComponent(tc)}` : "HPT_resultat.html";
+  location.href = url;
+});
+
+/* ── CHART ANIMATION ON SCROLL ───────────────────────────── */
+const chart = document.getElementById("insight-chart");
+const fills = chart.querySelectorAll(".chart-fill");
+const rows  = chart.querySelectorAll(".chart-row");
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      rows.forEach(row => {
+        const fill  = row.querySelector(".chart-fill");
+        const width = row.getAttribute("data-fill");
+        setTimeout(() => { fill.style.width = width + "%"; }, 100);
+      });
+      observer.disconnect();
+    }
+  });
+}, { threshold: 0.3 });
+
+observer.observe(chart);
+</script>
+</body>
+</html>
