@@ -31,7 +31,8 @@ input{font-family:inherit}
 .area-count{margin-left:auto;font-size:12px;color:var(--muted)}
 .q-wrap{flex:1;display:flex;flex-direction:column;padding:16px 20px 20px}
 .q-card{background:var(--card);border-radius:var(--r);box-shadow:0 1px 3px rgba(10,35,40,.06),0 6px 20px rgba(10,35,40,.07);padding:clamp(20px,4vw,32px);flex:1;display:flex;flex-direction:column}
-.q-number{font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
+.q-number{font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.q-intro{font-size:13px;color:var(--muted);background:var(--bg);border-radius:5px;padding:10px 12px;margin-bottom:14px;line-height:1.5;font-style:italic}
 .q-text{font-size:clamp(18px,4.5vw,22px);font-weight:700;line-height:1.35;flex:1;margin-bottom:28px}
 .scale-row{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin-bottom:0}
 .s-btn{aspect-ratio:1;border:2px solid var(--border);border-radius:var(--r);font-size:clamp(13px,2.8vw,18px);font-weight:800;color:var(--ink);background:var(--card);transition:border-color .12s,background .12s,color .12s,transform .1s;display:grid;place-items:center}
@@ -110,18 +111,43 @@ const WORKER_URL = "https://hpt-worker.johan-parmler.workers.dev"; // ← byt ut
 
 const AREAS = [
   { key:"sam", name:"Teamets sammansättning", color:"var(--col-sam)",
-    questions:["Vi har rätt mix av kompetenser för de uppgifter vi löser","Det är tydligt vem som ansvarar för vad i teamet","Vi har de roller vi behöver för att lyckas","Nya medlemmar kommer snabbt in i arbetet och kulturen"] },
+    intro:"Nu kommer några frågor om teamets sammansättning. I vilken utsträckning instämmer du i följande påståenden?",
+    questions:[
+      "Vårt team har en bra balans av kompetenser",
+      "Vi har tydligt definierade roller och ansvarsområden inom teamet",
+      "Vi har en bra blandning av erfarenheter och perspektiv inom teamet"
+    ]},
   { key:"rel", name:"Samarbete & relationer", color:"var(--col-rel)",
-    questions:["Vi litar på varandra i teamet","Vi hjälper varandra när arbetsbelastningen är hög","Vi hanterar konflikter på ett konstruktivt sätt","Jag känner mig trygg att dela åsikter och idéer","Vi kan vara öppna om misstag och osäkerheter"] },
+    intro:"Nu kommer några frågor om samarbetet i ditt team. I vilken utsträckning instämmer du i följande påståenden?",
+    questions:[
+      "Vi har en kultur där alla hjälper till, även utanför sina definierade roller",
+      "Vi litar på varandras arbete och känner oss trygga med att delegera eller lämna över uppgifter",
+      "Vi kan uttrycka åsikter och osäkerheter utan rädsla för negativa konsekvenser",
+      "Vi hanterar konflikter på ett konstruktivt sätt inom teamet",
+      "Vi stöttar varandra när det behövs"
+    ]},
   { key:"info", name:"Informationsdelning & kunskap", color:"var(--col-info)",
-    questions:["Vi delar information aktivt inom teamet","Vi har en tydlig struktur för hur vi organiserar och lagrar kunskap","Vi delar med oss av misstag och lärdomar","Vi förbereder oss gemensamt inför viktiga möten","Efter viktiga möten utvärderar vi gemensamt vad som hände"] },
+    intro:"Nu kommer några frågor om informations- och kunskapsdelning i teamet. I vilken utsträckning instämmer du i följande påståenden?",
+    questions:[
+      "Vi delar information aktivt inom teamet",
+      "Vi har en tydlig struktur för hur vi organiserar och delar kunskap inom teamet",
+      "Vi delar med oss av misstag och lärdomar",
+      "Vi reflekterar över och utvärderar regelbundet våra gemensamma uppgifter"
+    ]},
   { key:"mal", name:"Mål & riktning", color:"var(--col-mal)",
-    questions:["Vi har tydliga och gemensamma mål","Jag förstår hur mitt arbete bidrar till teamets övergripande mål","Vi följer regelbundet upp och justerar våra mål","Vi är överens om vad som är viktigast att prioritera just nu","Det är tydligt vad som förväntas av mig och teamet"] }
+    intro:"Nu kommer några frågor om teamets mål och riktning. I vilken utsträckning instämmer du i följande påståenden?",
+    questions:[
+      "Vi arbetar systematiskt med att förbättra vår prestation över tid inom teamet",
+      "Vi har tydliga gemensamma mål",
+      "Vi följer upp våra gemensamma mål regelbundet",
+      "Vi har en gemensam bild av vad framgång innebär för vårt team",
+      "Dina individuella mål har en tydlig koppling till teamets övergripande mål"
+    ]}
 ];
 const PREST = [
-  { q:"Hur nöjd är du med ditt nuvarande team?",              lo:"Inte alls nöjd",      hi:"Mycket nöjd" },
-  { q:"Hur väl uppfyller teamet dina förväntningar?",         lo:"Inte alls",           hi:"Helt och hållet" },
-  { q:"Hur nära är teamet ett perfekt, högpresterande team?", lo:"Mycket långt ifrån",  hi:"Mycket nära" }
+  { q:"Hur nöjd är du med ditt nuvarande team?",                                           lo:"Inte alls nöjd",    hi:"Mycket nöjd" },
+  { q:"Hur väl uppfyller ditt nuvarande team dina förväntningar?",                         lo:"Inte alls",         hi:"Helt och hållet" },
+  { q:"Hur nära eller långt ifrån är ditt nuvarande team ett perfekt högpresterande team?", lo:"Mycket långt ifrån", hi:"Mycket nära" }
 ];
 
 // Flat question list
@@ -378,7 +404,7 @@ function renderStart() {
         <span class="pill">4 områden</span>
         <span class="pill">${ALL.length} frågor</span>
         <span class="pill">Skala 1–10</span>
-        <span class="pill">~4 min</span>
+        <span class="pill">~5 min</span>
       </div>
       <button id="btn-start" class="btn-start" ${state.name.trim()?"":"disabled"}>Starta enkäten →</button>
     </div>
@@ -402,6 +428,7 @@ function renderSurvey() {
     <div class="q-wrap">
       <div class="q-card">
         <div class="q-number">Fråga ${state.cursor+1} av ${ALL.length}</div>
+        ${q.intro && posInArea===1 ? `<div class="q-intro">${q.intro}</div>` : ''}
         <div class="q-text">${q.text}</div>
         <div class="scale-labels" style="margin-bottom:8px"><span>${q.lo}</span><span>${q.hi}</span></div>
         <div class="scale-row">${r1}</div>

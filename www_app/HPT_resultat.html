@@ -168,14 +168,35 @@ const API = WORKER_URL + "/ai";
 const MODEL = "claude-sonnet-4-6";
 
 const AREAS = [
-  {key:"sam", name:"Teamets sammansättning",      color:"#0A434A", bench:78.1, impact:0.12,
-   questions:["Vi har rätt mix av kompetenser","Tydligt vem som ansvarar för vad","Vi har de roller vi behöver","Nya medlemmar kommer snabbt in"]},
-  {key:"rel", name:"Samarbete & relationer",       color:"#15A8B8", bench:78.5, impact:0.30,
-   questions:["Vi litar på varandra","Vi hjälper varandra vid hög belastning","Vi hanterar konflikter konstruktivt","Jag känner mig trygg att dela idéer","Vi är öppna om misstag och osäkerheter"]},
-  {key:"info",name:"Informationsdelning & kunskap",color:"#7FC4CB", bench:67.6, impact:0.25,
-   questions:["Vi delar information aktivt","Vi har tydlig struktur för kunskap","Vi delar misstag och lärdomar","Vi förbereder oss gemensamt","Vi utvärderar gemensamt efter möten"]},
-  {key:"mal", name:"Mål & riktning",               color:"#6E9E5C", bench:71.5, impact:0.48,
-   questions:["Vi har tydliga gemensamma mål","Jag förstår hur jag bidrar till målen","Vi följer upp och justerar mål","Vi är överens om prioriteringar","Det är tydligt vad som förväntas"]}
+  {key:"sam", name:"Teamets sammansättning", color:"#0A434A", bench:74.0, impact:0.12,
+   questions:[
+     {text:"Vårt team har en bra balans av kompetenser",                           bench:75.4},
+     {text:"Vi har tydligt definierade roller och ansvarsområden inom teamet",     bench:70.5},
+     {text:"Vi har en bra blandning av erfarenheter och perspektiv inom teamet",   bench:76.0}
+   ]},
+  {key:"rel", name:"Samarbete & relationer", color:"#15A8B8", bench:74.6, impact:0.30,
+   questions:[
+     {text:"Vi har en kultur där alla hjälper till, även utanför sina definierade roller",              bench:75.0},
+     {text:"Vi litar på varandras arbete och känner oss trygga med att delegera eller lämna över uppgifter", bench:74.4},
+     {text:"Vi kan uttrycka åsikter och osäkerheter utan rädsla för negativa konsekvenser",             bench:73.0},
+     {text:"Vi hanterar konflikter på ett konstruktivt sätt inom teamet",                               bench:69.2},
+     {text:"Vi stöttar varandra när det behövs",                                                        bench:80.8}
+   ]},
+  {key:"info", name:"Informationsdelning & kunskap", color:"#7FC4CB", bench:70.7, impact:0.25,
+   questions:[
+     {text:"Vi delar information aktivt inom teamet",                                              bench:76.9},
+     {text:"Vi har en tydlig struktur för hur vi organiserar och delar kunskap inom teamet",       bench:67.5},
+     {text:"Vi delar med oss av misstag och lärdomar",                                            bench:71.9},
+     {text:"Vi reflekterar över och utvärderar regelbundet våra gemensamma uppgifter",            bench:66.4}
+   ]},
+  {key:"mal", name:"Mål & riktning", color:"#6E9E5C", bench:69.7, impact:0.48,
+   questions:[
+     {text:"Vi arbetar systematiskt med att förbättra vår prestation över tid inom teamet", bench:67.1},
+     {text:"Vi har tydliga gemensamma mål",                                                  bench:74.4},
+     {text:"Vi följer upp våra gemensamma mål regelbundet",                                  bench:66.4},
+     {text:"Vi har en gemensam bild av vad framgång innebär för vårt team",                  bench:69.2},
+     {text:"Dina individuella mål har en tydlig koppling till teamets övergripande mål",     bench:72.0}
+   ]}
 ];
 
 /* ══════════════════════════════════════════════════════════
@@ -229,8 +250,9 @@ async function loadData(code) {
     const areas = {};
     AREAS.forEach(a => {
       const ad = data.areas?.[a.key] || {};
-      const qs = a.questions.map((qt, qi) => ({
-        text:  qt,
+      const qs = a.questions.map((qobj, qi) => ({
+        text:  qobj.text,
+        bench: qobj.bench,
         score: ad.qs?.[qi]?.score ?? null
       }));
       areas[a.key] = { score: ad.score ?? null, qs };
@@ -260,7 +282,7 @@ const PERSONA = `Du är workshopledaren för Svenskt Kvalitetsindex tjänst "Hö
 
 function dataContext() {
   const d=S.data;
-  const lines = AREAS.map(a=>`- ${a.name}: ${fmt(d.areas[a.key].score)} (nationellt ${a.bench}, hävstång ${a.impact})`).join("\n");
+  const lines = AREAS.map(a=>`- ${a.name}: ${fmt(d.areas[a.key].score)} (nationellt snitt ${a.bench.toFixed(1)}, påverkan på prestation ${a.impact})`).join("\n");
   return `Teamkod: ${d.code}. Antal svar: ${d.n}. Prestationsindex: ${fmt(d.prest)}/100.\nOmråden:\n${lines}`;
 }
 
@@ -392,7 +414,7 @@ function renderResult() {
     .sort((x,y)=>(x.v-x.a.impact*40)-(y.v-y.a.impact*40));
   const topPrio = ranked[0];
   const insightText = topPrio
-    ? `${topPrio.a.name} är ert viktigaste förbättringsområde — det har störst påverkan på prestation (${(topPrio.a.impact*100).toFixed(0)}%) och ert betyg på ${fmt(topPrio.v)} ligger ${topPrio.v<topPrio.a.bench?"under":"nära"} det nationella snittet på ${topPrio.a.bench}. Det är här ni har störst hävstång.`
+    ? `${topPrio.a.name} är ert viktigaste förbättringsområde — det har störst påverkan på prestation och ert betyg på ${fmt(topPrio.v)} ligger ${topPrio.v<topPrio.a.bench?"under det":"nära"} nationella snittet på ${topPrio.a.bench.toFixed(1)}. Det är här ni har störst hävstång.`
     : "Kör AI-workshopen för att få en analys av var ni har störst hävstång.";
 
   const areaCols = AREAS.map(a=>{
@@ -405,8 +427,14 @@ function renderResult() {
       const qw=clamp(q.score,0,100);
       return `<div class="q-item">
         <div class="q-item-label">${q.text}</div>
-        <div class="q-item-bar"><div class="q-item-fill" data-w="${qw}" style="width:0%;background:${a.color}"></div></div>
-        <div class="q-item-score">${q.score.toFixed(1)}</div>
+        <div class="q-item-bar" style="position:relative;overflow:visible">
+            <div class="q-item-fill" data-w="${qw}" style="width:0%;background:${a.color}"></div>
+            ${q.bench!=null?`<div style="position:absolute;top:-2px;bottom:-2px;width:2px;border-radius:2px;background:rgba(10,35,40,.3);left:${clamp(q.bench,0,100)}%"></div>`:""}
+          </div>
+          <div class="q-item-score" style="display:flex;justify-content:space-between;align-items:center">
+            <span>${q.score.toFixed(1)}</span>
+            ${q.bench!=null?`<span style="font-size:11px;font-weight:700;color:${q.score>=q.bench?'#2D7A3A':'#C46B38'}">${q.score>=q.bench?'+':''}${(q.score-q.bench).toFixed(1)} vs riket</span>`:""}
+          </div>
       </div>`;
     }).join("");
     return `<div class="area-card">
@@ -539,13 +567,16 @@ function loadDemo() {
   const resps = DEMO_DATA.map(r => r.value);
   const AREA_KEYS = ["sam","rel","info","mal"];
   const areas = {};
+  const AREA_OBJ = {};
+  AREAS.forEach(a => { AREA_OBJ[a.key] = a; });
   AREA_KEYS.forEach(key => {
     const scores = resps.map(r => r.areas[key] && r.areas[key].score).filter(v => typeof v === "number");
     const qCount = resps[0].areas[key].qs.length;
     const qs = Array.from({length: qCount}, (_, qi) => {
       const raws = resps.map(r => r.areas[key].qs[qi] && r.areas[key].qs[qi].raw).filter(v => typeof v === "number");
       const avg = raws.length ? raws.reduce((a,b)=>a+b,0)/raws.length : null;
-      return { text: resps[0].areas[key].qs[qi].text, score: avg != null ? +((avg-1)/9*100).toFixed(1) : null };
+      const qobj = AREA_OBJ[key]?.questions[qi];
+      return { text: qobj?.text || resps[0].areas[key].qs[qi].text, bench: qobj?.bench ?? null, score: avg != null ? +((avg-1)/9*100).toFixed(1) : null };
     });
     areas[key] = { score: scores.length ? +(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : null, qs };
   });
