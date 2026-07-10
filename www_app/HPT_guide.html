@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Så här gör du – Högpresterande Team</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+
+:root {
+  --p:    #0A434A;
+  --p2:   #0E5A63;
+  --p3:   #EAF2F2;
+  --gold: #E0BD5E;
+  --terra:#C46B38;
+  --ink:  #0F1F22;
+  --muted:#5C7A7E;
+  --border:#D5E2E3;
+  --bg:   #F3F6F6;
+  --card: #fff;
+  --sam:  #0A434A;
+  --rel:  #15A8B8;
+  --info: #7FC4CB;
+  --mal:  #6E9E5C;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.6}
+a{color:inherit;text-decoration:none}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--p);padding:14px clamp(20px,4vw,48px);display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+.topbar-back{color:rgba(255,255,255,.7);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:color .15s}
+.topbar-back:hover{color:#fff}
+.topbar-back svg{flex-shrink:0}
+.topbar-title{margin-left:auto;color:rgba(255,255,255,.6);font-size:13px}
+
+/* ── HERO ── */
+.hero{background:var(--p);color:#fff;padding:clamp(48px,8vw,96px) clamp(20px,4vw,48px) clamp(40px,6vw,72px);text-align:center}
+.hero-eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:16px}
+.hero h1{font-size:clamp(32px,6vw,56px);font-weight:900;line-height:1.05;letter-spacing:-.02em;margin-bottom:16px}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero-lead{font-size:clamp(15px,2vw,18px);opacity:.85;max-width:52ch;margin:0 auto 32px;line-height:1.65}
+
+/* Role toggle */
+.role-toggle{display:inline-flex;background:rgba(255,255,255,.1);border-radius:99px;padding:4px;gap:4px}
+.role-btn{padding:10px 24px;border-radius:99px;font-size:14px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;border:none;background:none;font-family:inherit;transition:background .2s,color .2s}
+.role-btn.active{background:#fff;color:var(--p)}
+
+/* ── MAIN ── */
+.main{max-width:800px;margin:0 auto;padding:clamp(32px,5vw,64px) clamp(20px,4vw,32px)}
+
+/* Section label */
+.section-label{display:flex;align-items:center;gap:12px;margin-bottom:clamp(24px,4vw,36px)}
+.section-label h2{font-size:clamp(20px,3vw,26px);font-weight:800;color:var(--p)}
+.section-label .role-tag{background:var(--gold);color:var(--ink);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
+
+/* Step cards */
+.steps{display:flex;flex-direction:column;gap:0}
+.step{display:grid;grid-template-columns:56px 1fr;gap:0;position:relative}
+.step:not(:last-child) .step-line{display:block}
+
+/* Left column: number + line */
+.step-left{display:flex;flex-direction:column;align-items:center;padding-top:4px}
+.step-num{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:16px;font-weight:900;flex-shrink:0;position:relative;z-index:1}
+.step-line{width:2px;flex:1;margin:4px 0;min-height:32px}
+
+/* Right column: content */
+.step-content{padding:0 0 clamp(28px,4vw,40px) 0}
+.step-tag{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px}
+.step-title{font-size:clamp(18px,2.5vw,22px);font-weight:800;margin-bottom:10px;line-height:1.2}
+.step-desc{font-size:15px;color:var(--muted);line-height:1.65;margin-bottom:14px}
+.step-desc strong{color:var(--ink);font-weight:700}
+
+/* Step card inset */
+.step-card{background:var(--card);border-radius:8px;border:1px solid var(--border);padding:16px 18px;font-size:14px;line-height:1.6}
+.step-card .card-label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.step-card .url-chip{display:inline-flex;align-items:center;gap:8px;background:var(--p3);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:700;color:var(--p);margin-bottom:6px}
+.step-card .url-chip svg{flex-shrink:0}
+.tip{display:flex;gap:10px;background:var(--p3);border-left:3px solid var(--p2);border-radius:0 6px 6px 0;padding:12px 14px;font-size:13px;line-height:1.55;margin-top:10px}
+.tip-icon{flex-shrink:0;margin-top:1px}
+
+/* Screen mockup */
+.screen-mock{border-radius:10px;overflow:hidden;border:1px solid var(--border);box-shadow:0 2px 8px rgba(10,35,40,.08);margin-top:14px}
+.mock-bar{background:var(--p);padding:10px 14px;display:flex;align-items:center;gap:8px}
+.mock-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3)}
+.mock-url{flex:1;background:rgba(255,255,255,.12);border-radius:4px;padding:4px 10px;font-size:11px;color:rgba(255,255,255,.7);font-family:monospace}
+.mock-body{background:#fff;padding:16px}
+.mock-progress{height:4px;background:var(--border);border-radius:99px;margin-bottom:14px;overflow:hidden}
+.mock-progress-fill{height:100%;background:var(--gold);border-radius:99px}
+.mock-q{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:12px;line-height:1.4}
+.mock-scale{display:flex;gap:5px}
+.mock-scale span{flex:1;height:32px;border:1.5px solid var(--border);border-radius:4px;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--muted)}
+.mock-scale span.on{background:var(--p);border-color:var(--p);color:#fff}
+
+/* Result mock */
+.mock-result{background:#fff;padding:16px}
+.mock-prest{background:var(--terra);color:#fff;border-radius:6px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.mock-prest-num{font-size:28px;font-weight:900;line-height:1}
+.mock-prest-lbl{font-size:11px;opacity:.85;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.mock-areas{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mock-area{border-radius:5px;overflow:hidden}
+.mock-area-head{padding:8px 10px;color:#fff;font-size:11px;font-weight:800}
+.mock-area-score{font-size:18px;font-weight:900;display:block}
+.mock-area-bar{height:4px;background:rgba(255,255,255,.25);margin-top:4px;border-radius:99px;overflow:hidden}
+.mock-area-fill{height:100%;background:#fff;border-radius:99px}
+
+/* AI mock */
+.mock-ai{background:#fff;padding:16px}
+.mock-ai-summary{background:var(--p3);border-left:3px solid var(--p2);border-radius:0 5px 5px 0;padding:10px 12px;font-size:12px;color:var(--p);line-height:1.5;margin-bottom:12px}
+.mock-prio{border:1px solid var(--border);border-radius:5px;padding:10px 12px;margin-bottom:8px}
+.mock-prio-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;font-size:12px;font-weight:800}
+.mock-prio-pip{width:8px;height:8px;border-radius:2px}
+.mock-disc-q{background:var(--bg);border-radius:4px;padding:7px 10px;font-size:11px;color:var(--muted);margin-bottom:4px;line-height:1.4}
+
+/* Divider between roles */
+.role-divider{height:2px;background:var(--border);margin:clamp(32px,5vw,56px) 0;position:relative}
+.role-divider::after{content:"";position:absolute;left:0;top:0;height:100%;width:60px;background:var(--gold)}
+
+/* Quick ref */
+.quick-ref{background:var(--p);color:#fff;border-radius:10px;padding:clamp(24px,4vw,36px);margin-top:clamp(32px,5vw,56px)}
+.quick-ref h3{font-size:18px;font-weight:800;color:var(--gold);margin-bottom:20px}
+.quick-ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.qr-item{background:rgba(255,255,255,.08);border-radius:6px;padding:14px 16px}
+.qr-item .qr-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.65;margin-bottom:6px}
+.qr-item .qr-val{font-size:14px;font-weight:700;line-height:1.45}
+.qr-item .qr-val a{color:var(--gold);text-decoration:underline;text-decoration-color:rgba(224,189,94,.4)}
+
+/* Footer */
+footer{background:var(--p);color:rgba(255,255,255,.55);padding:24px clamp(20px,4vw,48px);font-size:13px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:clamp(32px,5vw,56px)}
+footer strong{color:#fff}
+
+@media(max-width:600px){
+  .step{grid-template-columns:44px 1fr}
+  .quick-ref-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a href="index.html" class="topbar-back">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Tillbaka till startsidan
+  </a>
+  <span class="topbar-title">Användarguide</span>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">Högpresterande Team · SKI</p>
+  <h1>Så här<br><em>gör du det</em></h1>
+  <p class="hero-lead">En guide i tre steg för workshopledaren och ett steg för teamet. Hela processen tar under en timme att förbereda.</p>
+  <div class="role-toggle">
+    <button class="role-btn active" id="btn-all" onclick="showRole('all')">Hela flödet</button>
+    <button class="role-btn" id="btn-lead" onclick="showRole('lead')">Workshopledare</button>
+    <button class="role-btn" id="btn-team" onclick="showRole('team')">Teammedlem</button>
+  </div>
+</section>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ── WORKSHOPLEDARE ── -->
+  <div id="section-lead">
+    <div class="section-label">
+      <h2>Workshopledaren</h2>
+      <span class="role-tag">3 steg</span>
+    </div>
+
+    <div class="steps">
+
+      <!-- STEG 1 -->
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num" style="background:var(--p);color:#fff">1</div>
+          <div class="step-line" style="background:var(--border)"></div>
+        </div>
+        <div class="step-content" style="padding-left:16px">
+          <div class="step-tag" style="color:var(--p)">Förberedelse</div>
+          <div class="step-title">Skapa teamkod och PIN</div>
+          <p class="step-desc">Öppna admin-sidan och skapa ett team innan enkäten skickas ut. Du väljer en teamkod som alla i teamet ska använda och en fyrsiffrig PIN som bara du som workshopledare behöver.</p>
+          <div class="step-card">
+            <div class="card-label">Öppna admin-sidan</div>
+            <div class="url-chip">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5A5.5 5.5 0 1 1 7 12.5 5.5 5.5 0 0 1 7 1.5z" stroke="currentColor" stroke-width="1.4"/><path d="M7 4.5v3l2 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+              HPT_admin.html
+            </div>
+            <p style="font-size:13px;color:var(--muted)">Du får två färdiga länkar att kopiera direkt — en för teamet och en för dig med PIN förifylld.</p>
+            <div class="tip">
+              <span class="tip-icon">💡</span>
+              <span>Välj en teamkod som är lätt att skriva på mobil, t.ex. <strong>alfa-team</strong> eller <strong>saljteam-sthlm</strong>. Undvik mellanslag och specialtecken.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEG 2 -->
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num" style="background:var(--p);color:#fff">2</div>
+          <div class="step-line" style="background:var(--border)"></div>
+        </div>
+        <div class="step-content" style="padding-left:16px">
+          <div class="step-tag" style="color:var(--p)">Enkät</div>
+          <div class="step-title">Skicka enkätlänken till teamet</div>
+          <p class="step-desc">Dela enkätlänken via mail, Teams eller Slack. Länken innehåller teamkoden förifylld — teammedlemmarna behöver bara ange sitt namn och svara. <strong>Ge dem gärna 2–3 dagar</strong> att svara innan workshopen.</p>
+          <div class="step-card">
+            <div class="card-label">Enkätlänken ser ut så här</div>
+            <div class="url-chip">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              HPT_enkat.html?team=ert-teamnamn
+            </div>
+            <div class="mock-bar" style="border-radius:6px 6px 0 0;margin-top:12px">
+              <span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span>
+              <span class="mock-url">HPT_enkat.html?team=alfa-team</span>
+            </div>
+            <div class="mock-body" style="border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px">
+              <div class="mock-progress"><div class="mock-progress-fill" style="width:35%"></div></div>
+              <div class="mock-q">Vi litar på varandra i teamet</div>
+              <div class="mock-scale">
+                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                <span>6</span><span>7</span><span class="on">8</span><span>9</span><span>10</span>
+              </div>
+            </div>
+            <div class="tip" style="margin-top:12px">
+              <span class="tip-icon">⏱</span>
+              <span>Enkäten tar <strong>4 minuter</strong> att svara på. Påminn teamet dagen innan om inte alla svarat.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEG 3 -->
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num" style="background:var(--gold);color:var(--ink)">3</div>
+        </div>
+        <div class="step-content" style="padding-left:16px">
+          <div class="step-tag" style="color:var(--terra)">Workshop</div>
+          <div class="step-title">Öppna resultat och kör workshopen</div>
+          <p class="step-desc">Öppna din resultatlänk (med PIN förifylld) på storskärm eller padda. Du ser teamets samlade resultat direkt. Klicka sedan på <strong>"Skapa AI-workshopupplägg"</strong> för att få diskussionsfrågor och en elitidrottsparallell anpassad efter just ert resultat.</p>
+
+          <!-- Result mock -->
+          <div class="screen-mock">
+            <div class="mock-bar">
+              <span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span>
+              <span class="mock-url">HPT_resultat.html?team=alfa-team&pin=****</span>
+            </div>
+            <div class="mock-result">
+              <div class="mock-prest">
+                <div>
+                  <div class="mock-prest-num">72,4</div>
+                </div>
+                <div class="mock-prest-lbl">Prestationsindex<br>0–100</div>
+              </div>
+              <div class="mock-areas">
+                <div class="mock-area"><div class="mock-area-head" style="background:var(--sam)"><span class="mock-area-score">81,2</span>Sammansättning<div class="mock-area-bar"><div class="mock-area-fill" style="width:81%"></div></div></div></div>
+                <div class="mock-area"><div class="mock-area-head" style="background:var(--rel)"><span class="mock-area-score">77,8</span>Samarbete<div class="mock-area-bar"><div class="mock-area-fill" style="width:78%"></div></div></div></div>
+                <div class="mock-area"><div class="mock-area-head" style="background:var(--info);color:var(--ink)"><span class="mock-area-score">61,3</span>Informationsdelning<div class="mock-area-bar"><div class="mock-area-fill" style="width:61%;background:var(--ink);opacity:.3"></div></div></div></div>
+                <div class="mock-area"><div class="mock-area-head" style="background:var(--mal)"><span class="mock-area-score">58,1</span>Mål & riktning<div class="mock-area-bar"><div class="mock-area-fill" style="width:58%"></div></div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI mock -->
+          <div style="margin-top:12px">
+            <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">AI-workshopupplägg genereras automatiskt</div>
+            <div class="screen-mock">
+              <div class="mock-bar">
+                <span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span>
+                <span class="mock-url">Workshopupplägg · alfa-team</span>
+              </div>
+              <div class="mock-ai">
+                <div class="mock-ai-summary">Teamet är starkt på sammansättning och relationer men har störst förbättringspotential i mål & riktning — det område som driver prestation mest.</div>
+                <div class="mock-prio">
+                  <div class="mock-prio-head"><span class="mock-prio-pip" style="background:var(--mal)"></span>Mål & riktning</div>
+                  <div class="mock-disc-q">Är vi verkligen överens om vad som är viktigast att prioritera just nu — eller tar vi det för givet?</div>
+                  <div class="mock-disc-q">Vad skulle hända om vi följde upp våra mål varje vecka istället för varje kvartal?</div>
+                  <div class="mock-disc-q">Vilket mål känns mest oklart för dig personligen?</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tip" style="margin-top:12px">
+            <span class="tip-icon">🎿</span>
+            <span>Under <strong>Frågestund</strong> kan du eller teamet ställa följdfrågor direkt — AI:n känner till ert specifika resultat och svarar som en workshopledare.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── DIVIDER ── -->
+  <div class="role-divider" id="divider-team"></div>
+
+  <!-- ── TEAMMEDLEM ── -->
+  <div id="section-team">
+    <div class="section-label">
+      <h2>Teammedlemmen</h2>
+      <span class="role-tag" style="background:var(--p3);color:var(--p)">1 steg</span>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-left">
+          <div class="step-num" style="background:var(--p3);color:var(--p)">1</div>
+        </div>
+        <div class="step-content" style="padding-left:16px">
+          <div class="step-tag" style="color:var(--p)">Enkät</div>
+          <div class="step-title">Öppna länken och svara på frågorna</div>
+          <p class="step-desc">Du får en länk från workshopledaren. Öppna den, ange ditt namn och svara på frågorna — en i taget. Du väljer ett tal mellan 1 och 10 för varje fråga. Svaren är anonyma och visas bara som en del av teamets samlade resultat.</p>
+
+          <div class="step-card">
+            <div class="card-label">Det här möter du</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+              <div style="background:var(--bg);border-radius:6px;padding:12px;font-size:13px">
+                <div style="font-weight:800;margin-bottom:4px">4 områden</div>
+                <div style="color:var(--muted);font-size:12px;line-height:1.5">Sammansättning · Samarbete · Informationsdelning · Mål & riktning</div>
+              </div>
+              <div style="background:var(--bg);border-radius:6px;padding:12px;font-size:13px">
+                <div style="font-weight:800;margin-bottom:4px">~4 minuter</div>
+                <div style="color:var(--muted);font-size:12px;line-height:1.5">19 frågor totalt · En i taget · Skala 1–10</div>
+              </div>
+            </div>
+            <div class="tip" style="margin-top:10px">
+              <span class="tip-icon">✅</span>
+              <span>Du behöver ingen PIN-kod — det är bara workshopledaren som behöver den för att se resultaten.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── QUICK REF ── -->
+  <div class="quick-ref" id="section-ref">
+    <h3>Snabbreferens — alla länkar</h3>
+    <div class="quick-ref-grid">
+      <div class="qr-item">
+        <div class="qr-label">Admin — skapa team</div>
+        <div class="qr-val">HPT_admin.html<br><span style="opacity:.6;font-size:12px;font-weight:400">Bara för workshopledaren</span></div>
+      </div>
+      <div class="qr-item">
+        <div class="qr-label">Enkät — för teamet</div>
+        <div class="qr-val">HPT_enkat.html?team=<em style="color:var(--gold)">kodnamn</em><br><span style="opacity:.6;font-size:12px;font-weight:400">Länken från admin-sidan</span></div>
+      </div>
+      <div class="qr-item">
+        <div class="qr-label">Resultat — för workshopledaren</div>
+        <div class="qr-val">HPT_resultat.html?team=<em style="color:var(--gold)">kodnamn</em>&amp;pin=<em style="color:var(--gold)">****</em><br><span style="opacity:.6;font-size:12px;font-weight:400">Länken från admin-sidan</span></div>
+      </div>
+      <div class="qr-item">
+        <div class="qr-label">Den här guiden</div>
+        <div class="qr-val">HPT_guide.html<br><span style="opacity:.6;font-size:12px;font-weight:400">Dela med nya workshopledare</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <strong>Svenskt Kvalitetsindex · Högpresterande Team</strong>
+  <span style="margin-left:auto">johan.olsson@kvalitetsindex.se · 070 222 4906</span>
+</footer>
+
+<script>
+function showRole(role) {
+  const lead   = document.getElementById("section-lead");
+  const team   = document.getElementById("section-team");
+  const div    = document.getElementById("divider-team");
+  const ref    = document.getElementById("section-ref");
+
+  document.querySelectorAll(".role-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("btn-" + role).classList.add("active");
+
+  if (role === "all") {
+    lead.style.display = "block";
+    team.style.display = "block";
+    div.style.display  = "block";
+    ref.style.display  = "block";
+  } else if (role === "lead") {
+    lead.style.display = "block";
+    team.style.display = "none";
+    div.style.display  = "none";
+    ref.style.display  = "block";
+  } else {
+    lead.style.display = "none";
+    team.style.display = "block";
+    div.style.display  = "none";
+    ref.style.display  = "none";
+  }
+}
+</script>
+</body>
+</html>
