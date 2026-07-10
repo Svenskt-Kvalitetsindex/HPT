@@ -163,7 +163,8 @@ const DEMO_DATA = [{"key":"hpt:demo-team:resp:c670q36q","value":{"name":"Anna Li
 /* ══════════════════════════════════════════════════════════
    CONFIG
 ══════════════════════════════════════════════════════════ */
-const API = "https://api.anthropic.com/v1/messages";
+const WORKER_URL = "https://hpt-worker.johan-parmler.workers.dev"; // ← byt ut mot din Worker-URL
+const API = WORKER_URL + "/ai";
 const MODEL = "claude-sonnet-4-6";
 
 const AREAS = [
@@ -184,7 +185,8 @@ const params = new URLSearchParams(location.search);
 const S = {
   view: "entry",       // entry | loading | result | ws
   wsTab: "workshop",   // workshop | chat
-  apiKey: "",
+  pin: "",
+  pinErr: "",
   teamCode: params.get("team") || "",
   data: null,          // loaded team data
   err: "",
@@ -207,51 +209,36 @@ const mean = arr => { const v=arr.filter(x=>typeof x==="number"); return v.lengt
    DATA LOADING
 ══════════════════════════════════════════════════════════ */
 async function loadData(code) {
-  S.view="loading"; S.err=""; render();
+  S.view = "loading"; S.err = ""; S.pinErr = ""; render();
   code = san(code);
-  if(!code){ S.view="entry"; S.err="Ange en teamkod."; render(); return; }
+  if (!code) { S.view = "entry"; S.err = "Ange en teamkod."; render(); return; }
   try {
-    const list = await window.storage.list(`hpt:${code}:resp:`, true);
-    const keys = (list&&list.keys)||[];
-    if(!keys.length){ S.view="entry"; S.err=`Inga svar hittades för teamkoden "${code}".`; render(); return; }
-
-    const resps=[];
-    for(const k of keys){
-      try{ const g=await window.storage.get(k,true); if(g&&g.value) resps.push(JSON.parse(g.value)); }catch(_){}
+    const pinParam = S.pin ? "&pin=" + encodeURIComponent(S.pin) : "";
+    const res  = await fetch(WORKER_URL + "/results?team=" + encodeURIComponent(code) + pinParam);
+    const data = await res.json();
+    if (res.status === 401) {
+      S.view = "entry"; S.pinErr = data.pin ? "Fel PIN-kod. Försök igen." : "Den här teamkoden kräver en PIN-kod."; render(); return;
     }
-
-    // Aggregate
-    const areas={};
-    AREAS.forEach(a=>{
-      // score — support both old (number) and new (object) storage format
-      const scores = resps.map(r=>{
-        const v = r.areas&&r.areas[a.key];
-        if(v==null) return null;
-        return typeof v==="number" ? v : (v.score!=null?v.score:null);
-      }).filter(v=>v!=null);
-
-      // per-question averages (raw 1-10 → idx)
-      const qs = a.questions.map((qt,qi)=>{
-        const raws = resps.map(r=>{
-          const v=r.areas&&r.areas[a.key];
-          if(!v||!v.qs) return null;
-          return v.qs[qi]&&typeof v.qs[qi].raw==="number"?v.qs[qi].raw:null;
-        }).filter(v=>v!=null);
-        const avg = raws.length?raws.reduce((a,b)=>a+b,0)/raws.length:null;
-        return { text:qt, score: avg!=null?+((avg-1)/9*100).toFixed(1):null };
-      });
-
-      areas[a.key]={ score:scores.length?+(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1):null, qs };
+    if (!res.ok)  throw new Error(data.error || "Serverfel");
+    if (data.n === 0) {
+      S.view = "entry";
+      S.err  = `Inga svar hittades för teamkoden "${code}". Kontrollera stavningen.`;
+      render(); return;
+    }
+    // Map Worker response — fill in question texts from local AREAS definition
+    const areas = {};
+    AREAS.forEach(a => {
+      const ad = data.areas?.[a.key] || {};
+      const qs = a.questions.map((qt, qi) => ({
+        text:  qt,
+        score: ad.qs?.[qi]?.score ?? null
+      }));
+      areas[a.key] = { score: ad.score ?? null, qs };
     });
-
-    const prestArr = resps.map(r=>r.prest!=null?r.prest:null).filter(v=>v!=null);
-    const prest = prestArr.length?+(prestArr.reduce((a,b)=>a+b,0)/prestArr.length).toFixed(1):null;
-    const names = resps.map(r=>r.name).filter(Boolean);
-
-    S.data = { n:resps.length, code, areas, prest, names };
+    S.data = { n: data.n, code, areas, prest: data.prest ?? null, names: data.names || [] };
     S.view = "result";
   } catch(e) {
-    S.view="entry"; S.err="Kunde inte läsa data: "+e.message;
+    S.view = "entry"; S.err = "Kunde inte läsa data: " + e.message;
   }
   render();
 }
@@ -261,7 +248,7 @@ async function loadData(code) {
 ══════════════════════════════════════════════════════════ */
 async function callClaude(prompt) {
   const res = await fetch(API,{
-    method:"POST",headers:{"Content-Type":"application/json","x-api-key":S.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({model:MODEL,max_tokens:1000,messages:[{role:"user",content:prompt}]})
   });
   if(!res.ok) throw new Error("HTTP "+res.status);
@@ -278,7 +265,6 @@ function dataContext() {
 }
 
 async function generateWorkshop() {
-  if(!S.apiKey){ S.wsErr="Ange en Anthropic API-nyckel på startsidan för att använda AI-workshopen."; render(); return; }
   S.wsLoading=true; S.wsErr=""; render();
   const prompt=`${PERSONA}\n\nResultat:\n${dataContext()}\n\nGenerera ett workshopupplägg. Svara ENBART med giltig JSON, utan kodstaket:\n{"sammanfattning":"2-3 meningar som tolkar resultatet och pekar ut hävstången","prioriteringar":[{"omrade":"exakt ett av de fyra områdesnamnen","varfor":"en mening varför","fragor":["öppen diskussionsfråga 1","fråga 2","fråga 3"]}],"elitidrott":"en konkret parallell från elitidrotten kopplad till svagaste område"}\nVälj 2 prioriteringar.`;
   try {
@@ -375,13 +361,14 @@ function renderEntry() {
         <label for="tc-entry">Teamkod</label>
         <input id="tc-entry" type="text" placeholder="t.ex. saljteam-sthlm" value="${S.teamCode}" autocomplete="off">
       </div>
-      <div class="field" style="margin-top:14px">
-        <label for="apikey">Anthropic API-nyckel <span style="font-weight:400;text-transform:none;letter-spacing:0">(för AI-workshop)</span></label>
-        <input id="apikey" type="password" placeholder="sk-ant-..." autocomplete="off" value="${S.apiKey}">
-        <p class="hint" style="margin-top:6px">Nyckeln lagras bara i minnet — aldrig i filen.</p>
+      <div class="field" style="margin-top:14px" id="pin-wrap">
+        <label for="pin-entry">PIN-kod</label>
+        <input id="pin-entry" type="password" inputmode="numeric" maxlength="4" placeholder="4 siffror" autocomplete="off" value="${S.pin}">
+        <p class="hint" style="margin-top:6px">Ange PIN-koden om teamkoden är skyddad. Lämna tomt om ingen PIN är satt.</p>
       </div>
       <button class="btn-primary" id="btn-load" ${S.teamCode.trim()?"":"disabled"}>Hämta resultat</button>
       <button class="btn-demo" id="btn-demo">✨ Ladda demodata — 10 medarbetare</button>
+      ${S.pinErr?`<div class="err">${S.pinErr}</div>`:""}
       ${S.err?`<div class="err">${S.err}</div>`:""}
     </div>
   </div>`;
@@ -575,8 +562,8 @@ function bindAll() {
   const tce=document.getElementById("tc-entry");
   const bload=document.getElementById("btn-load");
   if(tce){ tce.addEventListener("input",()=>{ S.teamCode=tce.value; if(bload) bload.disabled=!S.teamCode.trim(); }); }
-  const ak=document.getElementById("apikey");
-  if(ak){ ak.value=S.apiKey; ak.addEventListener("input",()=>{ S.apiKey=ak.value.trim(); }); }
+  const pe=document.getElementById("pin-entry");
+  if(pe){ pe.value=S.pin; pe.addEventListener("input",()=>{ S.pin=pe.value.trim(); }); }
   if(bload){ bload.addEventListener("click",()=>{ if(S.teamCode.trim()) loadData(S.teamCode); }); }
   const bdemo=document.getElementById("btn-demo");
   if(bdemo) bdemo.addEventListener("click",loadDemo);
