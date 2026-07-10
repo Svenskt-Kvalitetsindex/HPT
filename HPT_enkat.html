@@ -139,8 +139,6 @@ const state = {
   screen: "start",
   name: "",
   teamCode: params.get("team") || "",
-  pin: params.get("pin") || "",
-  setupDone: false,
   cursor: 0,
   answers: new Array(ALL.length).fill(null),
   adminLoading: false,
@@ -174,17 +172,6 @@ async function saveResult() {
   const r = computeResult();
   if (!r.teamCode) return;
   try {
-    // If PIN set and not yet registered, call /setup first
-    if (state.pin && state.pin.length === 4 && !state.setupDone) {
-      try {
-        await fetch(WORKER_URL + "/setup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ teamCode: r.teamCode, pin: state.pin })
-        });
-        state.setupDone = true;
-      } catch(_) {}
-    }
     await fetch(WORKER_URL + "/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -241,14 +228,7 @@ const CHECK   = `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2
 const REFRESH = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16"><path d="M17 10a7 7 0 1 1-1.5-4.33M17 3v4h-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 function render() {
-  // Show pin field if teamcode pre-filled
-if(state.teamCode){
-  document.addEventListener('DOMContentLoaded',()=>{
-    const pf=document.getElementById('pin-field');
-    if(pf) pf.style.display='block';
-  });
-}
-if(IS_ADMIN){ renderAdmin(); return; }
+  if(IS_ADMIN){ renderAdmin(); return; }
   const pct = state.screen==="survey" ? Math.round((state.cursor/ALL.length)*100)
             : state.screen==="done"   ? 100 : 0;
   shell.innerHTML =
@@ -394,11 +374,6 @@ function renderStart() {
         <input id="tc" type="text" placeholder="t.ex. saljteam-sthlm" value="${state.teamCode}">
         <p class="hint">Alla i teamet anger samma kod. Lämna tomt för att testa enskilt.</p>
       </div>
-      <div class="field" id="pin-field" style="display:none">
-        <label for="pin-in">PIN-kod <span style="font-weight:400;text-transform:none;letter-spacing:0">(valfritt — skyddar resultatvyn)</span></label>
-        <input id="pin-in" type="password" inputmode="numeric" maxlength="4" placeholder="4 siffror" autocomplete="off" value="${state.pin}">
-        <p class="hint">Ange en fyrsiffrig PIN som workshopledaren anger för att se resultaten. Lämna tomt för öppen åtkomst.</p>
-      </div>
       <div class="meta-pills">
         <span class="pill">4 områden</span>
         <span class="pill">${ALL.length} frågor</span>
@@ -458,13 +433,7 @@ function bindAll() {
   const tc=document.getElementById("tc");
   const bs=document.getElementById("btn-start");
   if(nm) nm.addEventListener("input",()=>{ state.name=nm.value; if(bs) bs.disabled=!state.name.trim(); });
-  if(tc) tc.addEventListener("input",()=>{
-    state.teamCode=tc.value;
-    const pf=document.getElementById("pin-field");
-    if(pf) pf.style.display=state.teamCode.trim()?"block":"none";
-  });
-  const pi=document.getElementById("pin-in");
-  if(pi){ pi.value=state.pin; pi.addEventListener("input",()=>{ state.pin=pi.value.trim(); }); }
+  if(tc) tc.addEventListener("input",()=>{ state.teamCode=tc.value; });
   if(bs) bs.addEventListener("click",()=>{ if(state.name.trim()){ state.screen="survey"; render(); } });
 
   for(let n=1;n<=10;n++){

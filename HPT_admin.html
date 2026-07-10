@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HPT Admin – Svenskt Kvalitetsindex</title>
+<style>
+:root{
+  --p:#0A434A;--p2:#0E5A63;--p3:#EAF2F2;--gold:#E0BD5E;
+  --ink:#0F1F22;--muted:#5C7A7E;--border:#D5E2E3;--bg:#F3F6F6;--card:#fff;
+  --r:6px;--shadow:0 1px 3px rgba(10,35,40,.06),0 8px 24px rgba(10,35,40,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
+button{font-family:inherit;cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:transparent}
+input{font-family:inherit}
+
+.topbar{background:var(--p);color:#fff;display:flex;align-items:center;gap:12px;padding:14px 24px;flex-shrink:0}
+.topbar-logo{width:30px;height:30px;background:#fff;border-radius:3px;display:grid;place-items:center}
+.topbar-logo svg{width:20px;height:20px}
+.topbar-name{font-weight:800;font-size:15px;letter-spacing:.08em}
+.topbar-tag{margin-left:auto;font-size:12px;letter-spacing:.15em;text-transform:uppercase;opacity:.7}
+
+.main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 20px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:clamp(28px,4vw,44px);width:min(480px,100%)}
+.card-eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:12px}
+.card h1{font-size:clamp(22px,4vw,28px);font-weight:800;color:var(--p);margin-bottom:8px}
+.card .lead{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.field input{width:100%;padding:14px 15px;border:1.5px solid var(--border);border-radius:var(--r);font-size:17px;color:var(--ink);transition:border-color .15s}
+.field input:focus{outline:2px solid var(--p2);outline-offset:1px}
+.field .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+
+.pin-row{display:flex;gap:10px}
+.pin-row input{flex:1;text-align:center;font-size:24px;font-weight:800;letter-spacing:.3em;padding:14px 10px}
+
+.btn-primary{width:100%;padding:15px;border-radius:var(--r);background:var(--p);color:#fff;font-size:16px;font-weight:800;letter-spacing:.02em;margin-top:8px;transition:filter .15s}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed}
+
+.err{background:#FBEAE5;border:1px solid #E8B6A6;color:#8A3B1E;border-radius:var(--r);padding:11px 13px;font-size:14px;margin-top:12px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* SUCCESS STATE */
+.success{display:none;flex-direction:column;gap:20px}
+.success.show{display:flex}
+.success-icon{width:64px;height:64px;border-radius:50%;background:var(--p);display:grid;place-items:center;margin:0 auto}
+.success-icon svg{width:32px;height:32px}
+.success h2{font-size:22px;font-weight:800;color:var(--p);text-align:center}
+.success p{font-size:14px;color:var(--muted);line-height:1.6;text-align:center}
+
+.info-box{background:var(--p3);border-left:3px solid var(--p2);border-radius:0 var(--r) var(--r) 0;padding:14px 16px}
+.info-box .label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.info-box .value{font-size:16px;font-weight:800;color:var(--p);font-variant-numeric:tabular-nums;letter-spacing:.05em}
+
+.link-box{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:10px}
+.link-box .url{font-size:13px;color:var(--p);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.copy-btn{padding:7px 12px;border-radius:4px;background:var(--p);color:#fff;font-size:12px;font-weight:700;flex-shrink:0;transition:filter .15s}
+.copy-btn:hover{filter:brightness(1.1)}
+.copy-btn.copied{background:var(--p2)}
+
+.divider{height:1px;background:var(--border);margin:4px 0}
+.new-btn{width:100%;padding:12px;border-radius:var(--r);border:1.5px solid var(--border);font-size:14px;font-weight:700;color:var(--muted);margin-top:4px;transition:border-color .15s,color .15s}
+.new-btn:hover{border-color:var(--p2);color:var(--p)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M30 8a16 16 0 1 0 8 14h-8a8 8 0 1 1-4-7V8z" fill="#0A434A"/></svg>
+  </div>
+  <span class="topbar-name">SKI</span>
+  <span class="topbar-tag">Admin – Skapa team</span>
+</div>
+
+<div class="main">
+  <div class="card">
+
+    <!-- FORM -->
+    <div id="form-wrap">
+      <p class="card-eyebrow">Workshopledare</p>
+      <h1>Skapa ett nytt team</h1>
+      <p class="lead">Ange en teamkod och sätt en PIN-kod. Dela sedan enkätlänken med teamet — PIN:en behåller du för att se resultaten.</p>
+
+      <div class="field">
+        <label for="tc">Teamkod</label>
+        <input id="tc" type="text" placeholder="t.ex. alfa-team-2026" autocomplete="off">
+        <p class="hint">Används av alla i teamet när de svarar på enkäten. Välj något lätt att komma ihåg.</p>
+      </div>
+
+      <div class="field">
+        <label>PIN-kod (4 siffror)</label>
+        <div class="pin-row">
+          <input id="p1" type="password" inputmode="numeric" maxlength="1" pattern="[0-9]">
+          <input id="p2" type="password" inputmode="numeric" maxlength="1" pattern="[0-9]">
+          <input id="p3" type="password" inputmode="numeric" maxlength="1" pattern="[0-9]">
+          <input id="p4" type="password" inputmode="numeric" maxlength="1" pattern="[0-9]">
+        </div>
+        <p class="hint">Bara du som workshopledare behöver PIN:en — för att öppna resultatvyn.</p>
+      </div>
+
+      <button class="btn-primary" id="btn-create" disabled>Skapa team</button>
+      <div id="form-err" class="err" style="display:none"></div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success" id="success-wrap">
+      <div class="success-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 16l7 7 13-13" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2>Teamet är skapat!</h2>
+      <p>Dela enkätlänken med teamet. Spara PIN:en — du behöver den för att se resultaten.</p>
+
+      <div class="info-box">
+        <div class="label">Teamkod</div>
+        <div class="value" id="s-code">–</div>
+      </div>
+      <div class="info-box" style="background:#FBF3DC;border-color:#E0BD5E">
+        <div class="label">Din PIN-kod</div>
+        <div class="value" id="s-pin">–</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="field" style="margin-bottom:8px">
+          <label>Enkätlänk — dela med teamet</label>
+          <div class="link-box">
+            <span class="url" id="s-enkat-url">–</span>
+            <button class="copy-btn" id="copy-enkat">Kopiera</button>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Resultatlänk — bara för dig</label>
+          <div class="link-box">
+            <span class="url" id="s-resultat-url">–</span>
+            <button class="copy-btn" id="copy-resultat">Kopiera</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="new-btn" id="btn-new">+ Skapa ett nytt team</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const WORKER_URL = "https://hpt-worker.johan-parmler.workers.dev";
+const BASE_URL   = window.location.origin + window.location.pathname.replace("HPT_admin.html","");
+
+// PIN inputs — auto-advance
+const pins = [1,2,3,4].map(n => document.getElementById("p"+n));
+pins.forEach((inp, i) => {
+  inp.addEventListener("input", () => {
+    inp.value = inp.value.replace(/\D/g,"").slice(-1);
+    if (inp.value && i < 3) pins[i+1].focus();
+    checkForm();
+  });
+  inp.addEventListener("keydown", e => {
+    if (e.key === "Backspace" && !inp.value && i > 0) pins[i-1].focus();
+  });
+});
+
+const tc      = document.getElementById("tc");
+const btnCreate = document.getElementById("btn-create");
+const formErr = document.getElementById("form-err");
+
+tc.addEventListener("input", checkForm);
+
+function getPin() { return pins.map(p => p.value).join(""); }
+function checkForm() {
+  btnCreate.disabled = !tc.value.trim() || getPin().length !== 4;
+}
+
+btnCreate.addEventListener("click", async () => {
+  const code = tc.value.trim();
+  const pin  = getPin();
+  if (!code || pin.length !== 4) return;
+
+  btnCreate.disabled = true;
+  btnCreate.innerHTML = '<span class="spin"></span>Skapar team…';
+  formErr.style.display = "none";
+
+  try {
+    const res  = await fetch(WORKER_URL + "/setup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ teamCode: code, pin })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Serverfel");
+
+    // Show success
+    document.getElementById("form-wrap").style.display = "none";
+    const sw = document.getElementById("success-wrap");
+    sw.classList.add("show");
+
+    const sanCode = data.code || code.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9\-åäö]/g,"").slice(0,40);
+    document.getElementById("s-code").textContent = sanCode;
+    document.getElementById("s-pin").textContent  = pin;
+
+    const enkatUrl   = BASE_URL + "HPT_enkat.html?team=" + encodeURIComponent(sanCode);
+    const resultatUrl= BASE_URL + "HPT_resultat.html?team=" + encodeURIComponent(sanCode);
+    document.getElementById("s-enkat-url").textContent   = enkatUrl;
+    document.getElementById("s-resultat-url").textContent= resultatUrl;
+
+    bindCopy("copy-enkat",   enkatUrl);
+    bindCopy("copy-resultat", resultatUrl);
+
+  } catch(e) {
+    formErr.textContent = e.message;
+    formErr.style.display = "block";
+    btnCreate.disabled = false;
+    btnCreate.textContent = "Skapa team";
+  }
+});
+
+function bindCopy(btnId, text) {
+  const btn = document.getElementById(btnId);
+  btn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      btn.textContent = "Kopierad!";
+      btn.classList.add("copied");
+      setTimeout(() => { btn.textContent = "Kopiera"; btn.classList.remove("copied"); }, 2000);
+    } catch(_) {}
+  });
+}
+
+document.getElementById("btn-new").addEventListener("click", () => {
+  document.getElementById("form-wrap").style.display = "block";
+  document.getElementById("success-wrap").classList.remove("show");
+  tc.value = ""; pins.forEach(p => p.value = "");
+  btnCreate.disabled = true;
+  btnCreate.textContent = "Skapa team";
+  formErr.style.display = "none";
+  tc.focus();
+});
+</script>
+</body>
+</html>

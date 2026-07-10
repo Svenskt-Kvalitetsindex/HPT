@@ -185,7 +185,7 @@ const params = new URLSearchParams(location.search);
 const S = {
   view: "entry",       // entry | loading | result | ws
   wsTab: "workshop",   // workshop | chat
-  pin: "",
+  pin: params.get("pin") || "",
   pinErr: "",
   teamCode: params.get("team") || "",
   data: null,          // loaded team data
