@@ -207,6 +207,7 @@ async function saveResult() {
       body: JSON.stringify(r)
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
+    markAnswered();
     return { ok: true };
   } catch(e) {
     console.warn("Kunde inte spara svar:", e.message);
@@ -456,10 +457,12 @@ function renderDone() {
     <div class="done-icon" style="background:${isErr?'#C46B38':isSaving?'var(--muted)':'var(--p)'}">
       ${isErr ? ERR_ICON.replace(/stroke="#C46B38"/g,'stroke="#fff"') : CHECK}
     </div>
-    <h2>${isErr?"Något gick fel":"Tack, "+( state.name.split(" ")[0]||"du")+"!"}</h2>
+    <h2>${isErr?"Något gick fel":hasAnswered()&&!state.saveStatus?"Du har redan svarat":"Tack, "+( state.name.split(" ")[0]||"du")+"!"}</h2>
     ${isErr
       ? `<p style="color:var(--terra)">Ditt svar kunde inte sparas just nu. Kontrollera din internetanslutning och försök igen.</p>
          <button class="btn-again" id="btn-retry" style="background:var(--p);color:#fff;border:none;padding:14px 24px;border-radius:var(--r);font-size:15px;font-weight:800;margin-top:8px">Försök igen</button>`
+      : hasAnswered()&&!state.saveStatus
+      ? `<p>Du har redan skickat in dina svar för teamkod <strong>${san(state.teamCode)}</strong>. Kontakta workshopledaren om du behöver svara igen.</p>`
       : `<p>Ditt svar är sparat. Workshopledaren visar teamets samlade resultat när alla har svarat.</p>
          ${tc?`<div class="done-team"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4" r="2.2" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="5" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M1 11c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M10 8.5c1.7 0 3 1.2 3 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Teamkod: <strong>${tc}</strong></div>`:""}
          <div class="save-confirm"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="#2D7A3A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Svaret är bekräftat sparat</div>`
@@ -475,7 +478,14 @@ function bindAll() {
   const bs=document.getElementById("btn-start");
   if(nm) nm.addEventListener("input",()=>{ state.name=nm.value; if(bs) bs.disabled=!state.name.trim(); });
   if(tc) tc.addEventListener("input",()=>{ state.teamCode=tc.value; });
-  if(bs) bs.addEventListener("click",()=>{ if(state.name.trim()){ state.screen="survey"; render(); } });
+  if(bs) bs.addEventListener("click",()=>{
+    if(!state.name.trim()) return;
+    if(hasAnswered()){
+      state.screen="done"; state.saveStatus="ok"; render();
+    } else {
+      state.screen="survey"; render();
+    }
+  });
 
   for(let n=1;n<=10;n++){
     const b=document.getElementById("sb"+n);
@@ -497,6 +507,7 @@ function bindAll() {
   });
   const ag=document.getElementById("btn-again");
   if(ag) ag.addEventListener("click",()=>{
+    if(state.teamCode) localStorage.removeItem(alreadyAnsweredKey());
     state.screen="start"; state.cursor=0; state.saveStatus=null; state.saveErr="";
     state.answers=new Array(ALL.length).fill(null);
     render();
