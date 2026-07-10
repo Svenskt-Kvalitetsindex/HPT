@@ -69,6 +69,7 @@ input{font-family:inherit}
 .screen-done p{color:var(--muted);font-size:clamp(14px,3.5vw,16px);max-width:34ch;line-height:1.55;margin-bottom:32px}
 .done-team{display:inline-flex;align-items:center;gap:8px;background:var(--petrol-light);border:1px solid var(--border);border-radius:99px;padding:9px 16px;font-size:14px;font-weight:700;color:var(--petrol);margin-bottom:32px}
 .btn-again{padding:13px 24px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-weight:700;color:var(--muted)}
+.save-confirm{display:inline-flex;align-items:center;gap:7px;background:#E8F5E9;border:1px solid #A5D6A7;border-radius:99px;padding:8px 14px;font-size:13px;font-weight:700;color:#2D7A3A;margin-bottom:8px}
 
 /* ── ADMIN ── */
 .admin-hero{background:var(--petrol);color:#fff;padding:24px 20px 20px}
@@ -167,6 +168,8 @@ const state = {
   teamCode: params.get("team") || "",
   cursor: 0,
   answers: new Array(ALL.length).fill(null),
+  saveStatus: null,
+  saveErr: "",
   adminLoading: false,
   adminData: null,
   adminErr: ""
@@ -196,15 +199,18 @@ function computeResult() {
 
 async function saveResult() {
   const r = computeResult();
-  if (!r.teamCode) return;
+  if (!r.teamCode) return { ok: false, err: "Ingen teamkod" };
   try {
-    await fetch(WORKER_URL + "/save", {
+    const res = await fetch(WORKER_URL + "/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(r)
     });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return { ok: true };
   } catch(e) {
     console.warn("Kunde inte spara svar:", e.message);
+    return { ok: false, err: e.message };
   }
 }
 
@@ -443,12 +449,22 @@ function renderSurvey() {
 
 function renderDone() {
   const tc=san(state.teamCode);
+  const isErr = state.saveStatus === "err";
+  const isSaving = state.saveStatus === "saving";
+  const ERR_ICON = `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="16" stroke="#C46B38" stroke-width="2.5"/><path d="M20 12v10M20 27v2" stroke="#C46B38" stroke-width="2.5" stroke-linecap="round"/></svg>`;
   return `<div class="screen-done">
-    <div class="done-icon">${CHECK}</div>
-    <h2>Tack, ${state.name.split(" ")[0]||"du"}!</h2>
-    <p>Dina svar är sparade. Workshopledaren visar teamets samlade resultat när alla har svarat.</p>
-    ${tc?`<div class="done-team">Teamkod: <strong>${tc}</strong></div>`:""}
-    <button class="btn-again" id="btn-again">Svara igen</button>
+    <div class="done-icon" style="background:${isErr?'#C46B38':isSaving?'var(--muted)':'var(--p)'}">
+      ${isErr ? ERR_ICON.replace(/stroke="#C46B38"/g,'stroke="#fff"') : CHECK}
+    </div>
+    <h2>${isErr?"Något gick fel":"Tack, "+( state.name.split(" ")[0]||"du")+"!"}</h2>
+    ${isErr
+      ? `<p style="color:var(--terra)">Ditt svar kunde inte sparas just nu. Kontrollera din internetanslutning och försök igen.</p>
+         <button class="btn-again" id="btn-retry" style="background:var(--p);color:#fff;border:none;padding:14px 24px;border-radius:var(--r);font-size:15px;font-weight:800;margin-top:8px">Försök igen</button>`
+      : `<p>Ditt svar är sparat. Workshopledaren visar teamets samlade resultat när alla har svarat.</p>
+         ${tc?`<div class="done-team"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4" r="2.2" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="5" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M1 11c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M10 8.5c1.7 0 3 1.2 3 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Teamkod: <strong>${tc}</strong></div>`:""}
+         <div class="save-confirm"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="#2D7A3A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Svaret är bekräftat sparat</div>`
+    }
+    ${!isErr?`<button class="btn-again" id="btn-again">Svara igen</button>`:""}
   </div>`;
 }
 
@@ -481,8 +497,13 @@ function bindAll() {
   });
   const ag=document.getElementById("btn-again");
   if(ag) ag.addEventListener("click",()=>{
-    state.screen="start"; state.cursor=0;
+    state.screen="start"; state.cursor=0; state.saveStatus=null; state.saveErr="";
     state.answers=new Array(ALL.length).fill(null);
+    render();
+  });
+  const rt=document.getElementById("btn-retry");
+  if(rt) rt.addEventListener("click",()=>{
+    state.screen="survey"; state.cursor=ALL.length-1;
     render();
   });
 }

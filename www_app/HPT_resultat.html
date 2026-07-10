@@ -152,6 +152,29 @@ input{font-family:inherit}
   .area-grid{grid-template-columns:1fr}
   .bub{max-width:90%}
 }
+
+/* ── PRINT ── */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #fff; }
+  .topbar, .ws-tabs, .regen-bar, .chat, .chat-log, .chat-bar, .chat-note,
+  .suggest, .ws-trigger, .res-actions, .btn-print, .entry,
+  [id="tab-result"], [id="tab-ws"], [id="btn-refresh"] { display: none !important; }
+  .page { padding: 0; max-width: 100%; }
+  .result-hero { box-shadow: none; border: 1px solid #D5E2E3; break-inside: avoid; }
+  .area-grid { grid-template-columns: repeat(2,1fr); }
+  .area-card { box-shadow: none; border: 1px solid #D5E2E3; break-inside: avoid; }
+  .ws-panel { box-shadow: none; border: 1px solid #D5E2E3; }
+  .ws-content { padding: 16px; }
+  .prio-block { break-inside: avoid; }
+  .sport-block { break-inside: avoid; }
+  .print-header { display: flex !important; }
+  .print-footer { display: block !important; }
+}
+@media screen {
+  .print-header { display: none; }
+  .print-footer { display: none; }
+}
 </style>
 </head>
 <body>
@@ -205,7 +228,8 @@ const AREAS = [
 const params = new URLSearchParams(location.search);
 const S = {
   view: "entry",       // entry | loading | result | ws
-  wsTab: "workshop",   // workshop | chat
+  wsTab: "workshop",
+  wsRegen: false,  // regenerating workshop
   pin: params.get("pin") || "",
   pinErr: "",
   teamCode: params.get("team") || "",
@@ -513,6 +537,13 @@ function renderWS() {
 
   const workshopContent = w ? `
     <div class="ws-summary">${w.sammanfattning||""}</div>
+    <div class="regen-bar">
+      <span class="regen-label">Fokusera på:</span>
+      ${["Teamets sammansättning","Samarbete & relationer","Informationsdelning & kunskap","Mål & riktning"].map(a=>
+        `<button class="regen-chip" data-focus="${a}">${a.split(" ")[0]}</button>`
+      ).join("")}
+      <button class="regen-btn" id="btn-regen">${S.wsLoading?'<span class="spin-sm"></span>':'↺'} Nytt upplägg</button>
+    </div>
     ${(w.prioriteringar||[]).map(p=>{
       const key=AREA_KEYS[(p.omrade||"").toLowerCase()]||"sam";
       const col=AREA_COLS[key];
@@ -546,11 +577,27 @@ function renderWS() {
     </div>
     <p class="chat-note">AI:n känner till teamets resultat och workshopupplägget.</p>`;
 
+  const d = S.data;
+  const printDate = new Date().toLocaleDateString('sv-SE');
   return `<div class="page">
+    <div class="print-header" style="display:none;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--p)">
+      <div>
+        <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Högpresterande Team · Svenskt Kvalitetsindex</div>
+        <div style="font-size:20px;font-weight:800;color:var(--p)">Teamresultat: ${d?d.code:""}</div>
+      </div>
+      <div style="text-align:right;font-size:12px;color:var(--muted)">${printDate}<br>${d?d.n+" svar":""}</div>
+    </div>
     <div class="ws-panel">
       <div class="ws-tabs">
         <button class="ws-tab${S.wsTab==="workshop"?" active":""}" id="wstab-workshop">Workshopupplägg</button>
         <button class="ws-tab${S.wsTab==="chat"?" active":""}" id="wstab-chat">Frågestund</button>
+        <button class="btn-print" id="btn-print" title="Skriv ut eller spara som PDF">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3.5 5V2.5h8V5M3.5 10.5H2a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="3.5" y="8.5" width="8" height="5" rx=".5" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+          Skriv ut / PDF
+        </button>
       </div>
       <div class="ws-content">
         ${S.wsTab==="workshop"?workshopContent:chatContent}
@@ -616,6 +663,17 @@ function bindAll() {
   const wt2=document.getElementById("wstab-chat");
   if(wt1) wt1.addEventListener("click",()=>{ S.wsTab="workshop"; render(); });
   if(wt2) wt2.addEventListener("click",()=>{ S.wsTab="chat"; render(); });
+  const bregen=document.getElementById("btn-regen");
+  if(bregen) bregen.addEventListener("click",()=>generateWorkshop());
+  document.querySelectorAll(".regen-chip").forEach(btn=>{
+    btn.addEventListener("click",()=>generateWorkshop(btn.getAttribute("data-focus")));
+  });
+  const bp=document.getElementById("btn-print");
+  if(bp) bp.addEventListener("click",()=>{
+    // Switch to workshop tab before printing
+    S.wsTab="workshop"; render();
+    setTimeout(()=>window.print(), 100);
+  });
 
   /* SUGGESTIONS */
   document.querySelectorAll("[data-ask]").forEach(b=>{
