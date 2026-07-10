@@ -157,19 +157,39 @@ input{font-family:inherit}
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body { background: #fff; }
+
+  /* Hide chrome */
   .topbar, .ws-tabs, .regen-bar, .chat, .chat-log, .chat-bar, .chat-note,
   .suggest, .ws-trigger, .res-actions, .btn-print, .entry,
-  [id="tab-result"], [id="tab-ws"], [id="btn-refresh"] { display: none !important; }
+  [id="tab-result"], [id="tab-ws"], [id="btn-refresh"],
+  .insight-band { display: none !important; }
+
+  /* Show both result and ws pages */
+  .print-result-page { display: block !important; }
+  .print-ws-page { display: block !important; }
+
+  /* Page layout */
   .page { padding: 0; max-width: 100%; }
-  .result-hero { box-shadow: none; border: 1px solid #D5E2E3; break-inside: avoid; }
-  .area-grid { grid-template-columns: repeat(2,1fr); }
+  .print-wrap { display: block !important; }
+
+  /* Result page */
+  .result-hero { box-shadow: none; border: 1px solid #D5E2E3; break-inside: avoid; margin-bottom: 20px; }
+  .area-grid { grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 0; }
   .area-card { box-shadow: none; border: 1px solid #D5E2E3; break-inside: avoid; }
-  .ws-panel { box-shadow: none; border: 1px solid #D5E2E3; }
+
+  /* Page break between result and workshop */
+  .print-page-break { display: block !important; break-before: page; height: 0; }
+
+  /* Workshop */
+  .ws-panel { box-shadow: none; border: 1px solid #D5E2E3; margin-top: 0; }
   .ws-content { padding: 16px; }
   .prio-block { break-inside: avoid; }
   .sport-block { break-inside: avoid; }
+
+  /* Headers/footers */
   .print-header { display: flex !important; }
   .print-footer { display: block !important; }
+  .print-ws-header { display: block !important; }
 }
 @media screen {
   .print-header { display: none; }
@@ -587,6 +607,11 @@ function renderWS() {
       </div>
       <div style="text-align:right;font-size:12px;color:var(--muted)">${printDate}<br>${d?d.n+" svar":""}</div>
     </div>
+    <div class="print-page-break" style="display:none"></div>
+    <div class="print-ws-header" style="display:none;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--p)">
+      <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Workshopupplägg · ${d?d.code:""} · ${printDate}</div>
+      <div style="font-size:18px;font-weight:800;color:var(--p)">AI-genererat workshopupplägg</div>
+    </div>
     <div class="ws-panel">
       <div class="ws-tabs">
         <button class="ws-tab${S.wsTab==="workshop"?" active":""}" id="wstab-workshop">Workshopupplägg</button>
@@ -670,8 +695,13 @@ function bindAll() {
   });
   const bp=document.getElementById("btn-print");
   if(bp) bp.addEventListener("click",()=>{
-    // Switch to workshop tab before printing
     S.wsTab="workshop"; render();
+    setTimeout(()=>window.print(), 100);
+  });
+  const bpr=document.getElementById("btn-print-result");
+  if(bpr) bpr.addEventListener("click",()=>{
+    // If workshop exists, switch to ws view so both print together
+    if(S.ws){ S.view="ws"; S.wsTab="workshop"; render(); }
     setTimeout(()=>window.print(), 100);
   });
 
