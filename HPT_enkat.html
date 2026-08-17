@@ -68,7 +68,7 @@ input{font-family:inherit}
 .screen-done h2{font-size:clamp(22px,5vw,28px);font-weight:800;margin-bottom:12px}
 .screen-done p{color:var(--muted);font-size:clamp(14px,3.5vw,16px);max-width:34ch;line-height:1.55;margin-bottom:32px}
 .done-team{display:inline-flex;align-items:center;gap:8px;background:var(--petrol-light);border:1px solid var(--border);border-radius:99px;padding:9px 16px;font-size:14px;font-weight:700;color:var(--petrol);margin-bottom:32px}
-.btn-again{padding:13px 24px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-weight:700;color:var(--muted)}
+.btn-again{display:inline-block;padding:13px 24px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-weight:700;color:var(--muted);text-decoration:none}
 .save-confirm{display:inline-flex;align-items:center;gap:7px;background:#E8F5E9;border:1px solid #A5D6A7;border-radius:99px;padding:8px 14px;font-size:13px;font-weight:700;color:#2D7A3A;margin-bottom:8px}
 
 /* ── ADMIN ── */
@@ -425,6 +425,7 @@ function renderStart() {
         <span class="pill">~5 min</span>
       </div>
       <button id="btn-start" class="btn-start" ${state.name.trim()?"":"disabled"}>Starta enkäten →</button>
+      <a href="index.html" class="btn-cancel" style="margin-bottom:0">← Tillbaka till startsidan</a>
     </div>
   </div>`;
 }
@@ -454,10 +455,10 @@ function renderSurvey() {
       </div>
     </div>
     <div class="nav">
-      <button class="btn-back" id="btn-back">${state.cursor===0?"Avbryt":"← Tillbaka"}</button>
+      <button class="btn-back" id="btn-back">← Tillbaka</button>
       <button class="btn-next" id="btn-next" ${val!==null?"":"disabled"}>${isLast?"Skicka in":"Nästa →"}</button>
     </div>
-    ${state.cursor>0?`<button class="btn-cancel" id="btn-cancel">Avbryt och gå till startsidan</button>`:""}`;
+    <a href="index.html" class="btn-cancel" id="btn-cancel">Avbryt och gå till startsidan</a>`;
 }
 
 function renderDone() {
@@ -483,7 +484,7 @@ function renderDone() {
          ${tc?`<div class="done-team"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4" r="2.2" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="5" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M1 11c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M10 8.5c1.7 0 3 1.2 3 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Teamkod: <strong>${tc}</strong></div>`:""}
          <div class="save-confirm"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="#2D7A3A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Svaret är bekräftat sparat</div>`
     }
-    ${!isSaving?`<button class="btn-again" id="btn-home" ${isErr?'style="margin-top:12px"':""}>Till startsidan</button>`:""}
+    ${!isSaving?`<a href="index.html" class="btn-again" id="btn-home" ${isErr?'style="margin-top:12px"':""}>Till startsidan</a>`:""}
   </div>`;
 }
 
@@ -517,7 +518,7 @@ function bindAll() {
 
   const back=document.getElementById("btn-back");
   if(back) back.addEventListener("click",()=>{
-    if(state.cursor===0){ goToStart(); } else { state.cursor--; render(); }
+    if(state.cursor===0){ goToNameScreen(); } else { state.cursor--; render(); }
   });
   const next=document.getElementById("btn-next");
   if(next) next.addEventListener("click",()=>{
@@ -538,17 +539,14 @@ function bindAll() {
       }
     }
   });
-  // Efter inskickat svar: enda vägen vidare är tillbaka till startsidan.
-  // Svaren nollställs, men "har svarat"-spärren ligger kvar.
-  const home=document.getElementById("btn-home");
-  if(home) home.addEventListener("click",()=>{ goToStart(); });
+  // "Till startsidan" (btn-home) är en vanlig länk till index.html och
+  // behöver ingen handler – spärren i localStorage ligger kvar oavsett.
 
   // Avbryt mitt i enkäten – varna först, svaren hittills går förlorade.
   const cancel=document.getElementById("btn-cancel");
-  if(cancel) cancel.addEventListener("click",()=>{
+  if(cancel) cancel.addEventListener("click",e=>{
     const started=state.answers.some(a=>a!==null);
-    if(started && !confirm("Vill du avbryta? Dina svar hittills sparas inte.")) return;
-    goToStart();
+    if(started && !confirm("Vill du avbryta? Dina svar hittills sparas inte.")) e.preventDefault();
   });
   const rt=document.getElementById("btn-retry");
   if(rt) rt.addEventListener("click",()=>{
@@ -559,9 +557,10 @@ function bindAll() {
 
 function pick(val){ state.answers[state.cursor]=val; render(); }
 
-/* Tillbaka till startsidan. Nollställer svaren, men rör inte
-   "har svarat"-spärren – den som skickat in kan inte svara igen. */
-function goToStart(){
+/* Ett steg bakåt från fråga 1 = tillbaka till namn-/teamkodsrutan i enkäten.
+   (Startsidan är index.html och nås via länkarna "Till startsidan".)
+   Nollställer svaren, men rör inte "har svarat"-spärren. */
+function goToNameScreen(){
   state.screen="start"; state.cursor=0; state.saveStatus=null; state.saveErr="";
   state.answers=new Array(ALL.length).fill(null);
   render();
