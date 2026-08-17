@@ -479,9 +479,14 @@ function bindAll() {
   if(nm) nm.addEventListener("input",()=>{ state.name=nm.value; if(bs) bs.disabled=!state.name.trim(); });
   if(tc) tc.addEventListener("input",()=>{ state.teamCode=tc.value; });
   if(bs) bs.addEventListener("click",()=>{
+    // Sync latest input values before checking
+    const nmEl=document.getElementById("nm");
+    const tcEl=document.getElementById("tc");
+    if(nmEl) state.name=nmEl.value;
+    if(tcEl) state.teamCode=tcEl.value;
     if(!state.name.trim()) return;
     if(hasAnswered()){
-      state.screen="done"; state.saveStatus="ok"; render();
+      state.screen="done"; state.saveStatus=null; render();
     } else {
       state.screen="survey"; render();
     }
