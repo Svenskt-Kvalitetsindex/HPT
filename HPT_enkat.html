@@ -183,6 +183,19 @@ const idx  = avg  => avg==null?null:+(((avg-1)/9)*100).toFixed(1);
 const fmt  = v => v==null?"–":v.toFixed(1);
 const clamp= (v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 
+/* ── "Har redan svarat"-spärr (per teamkod, i localStorage) ── */
+function alreadyAnsweredKey(){ return "hpt:answered:" + san(state.teamCode); }
+function hasAnswered(){
+  if(!san(state.teamCode)) return false;
+  try { return localStorage.getItem(alreadyAnsweredKey()) === "1"; }
+  catch(_) { return false; }
+}
+function markAnswered(){
+  if(!san(state.teamCode)) return;
+  try { localStorage.setItem(alreadyAnsweredKey(), "1"); }
+  catch(_) {}
+}
+
 function computeResult() {
   const areas={};
   AREAS.forEach(a=>{
@@ -266,7 +279,7 @@ function render() {
             : state.screen==="done"   ? 100 : 0;
   shell.innerHTML =
     `<div class="topbar">
-       ${SKI_LOGO}</div>
+       ${SKI_LOGO}
        <span class="topbar-name">SKI</span>
        <span class="topbar-sub">Högpresterande Team</span>
      </div>
@@ -369,7 +382,7 @@ function renderAdmin() {
 
   shell.innerHTML = `
     <div class="topbar">
-      ${SKI_LOGO}</div>
+      ${SKI_LOGO}
       <span class="topbar-name">SKI</span>
       <span class="topbar-sub">Resultat – Admin</span>
     </div>
