@@ -57,6 +57,8 @@ input{font-family:inherit}
 .field input{width:100%;padding:15px 16px;border:1.5px solid var(--border);border-radius:var(--r);font-size:17px;color:var(--ink);background:var(--card);transition:border-color .15s}
 .field input:focus{outline:none;border-color:var(--petrol-mid)}
 .field .hint{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.5}
+.privacy-note{font-size:12.5px;color:var(--muted);line-height:1.6;background:var(--petrol-light);border-radius:var(--r);padding:14px 16px}
+.privacy-note strong{color:var(--petrol);display:block;margin-bottom:3px}
 .meta-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
 .pill{font-size:12px;color:var(--muted);background:var(--petrol-light);border-radius:99px;padding:5px 11px}
 .btn-start{width:100%;padding:17px;border-radius:var(--r);font-size:17px;font-weight:800;background:var(--petrol);color:#fff;letter-spacing:.02em;margin-top:auto;transition:filter .15s}
@@ -159,12 +161,15 @@ PREST.forEach((p,i) =>
   ALL.push({ areaKey:"prest", areaName:"Ditt teams prestation", areaColor:"var(--col-prest)", qIndex:i, qTotal:PREST.length, text:p.q, lo:p.lo, hi:p.hi }));
 
 /* ── STATE ───────────────────────────────────────────────── */
+// Minsta antal svar innan resultat visas. Skyddar enskilda deltagare:
+// med för få svar går det att räkna ut vem som svarat vad.
+const MIN_N = 4;
+
 const params   = new URLSearchParams(location.search);
 const IS_ADMIN = params.get("admin") === "1";
 
 const state = {
   screen: "start",
-  name: "",
   teamCode: params.get("team") || "",
   cursor: 0,
   answers: new Array(ALL.length).fill(null),
@@ -207,7 +212,7 @@ function computeResult() {
     });
   });
   const pv=ALL.filter(q=>q.areaKey==="prest").map(q=>state.answers[ALL.indexOf(q)]).filter(v=>typeof v==="number");
-  return { name:state.name, teamCode:san(state.teamCode), areas, prest:idx(mean(pv)), ts:Date.now() };
+  return { teamCode:san(state.teamCode), areas, prest:idx(mean(pv)), ts:Date.now() };
 }
 
 async function saveResult() {
@@ -259,8 +264,7 @@ async function loadAdminData(teamCode) {
     });
     const prestScores=resps.map(r=>r.prest!=null?r.prest:null).filter(v=>v!=null);
     const prest=prestScores.length?+(prestScores.reduce((a,b)=>a+b,0)/prestScores.length).toFixed(1):null;
-    const names=resps.map(r=>r.name).filter(Boolean);
-    state.adminData={ n:resps.length, areas, prest, names, code };
+    state.adminData={ n:resps.length, areas, prest, code };
   } catch(e) {
     state.adminErr="Kunde inte läsa data: "+e.message;
   }
@@ -319,6 +323,15 @@ function renderAdmin() {
       </div>
       <button class="btn-reload" id="btn-load">Hämta resultat</button>
     </div>`;
+  } else if(d.n < MIN_N) {
+    // Anonymitetsspärr: för få svar för att visa resultat utan att enskilda
+    // deltagares svar går att räkna ut.
+    body = `<div class="admin-empty">
+      <h3>För få svar än så länge</h3>
+      <p><strong>${d.n} av ${MIN_N}</strong> svar har kommit in. Resultatet visas när minst
+      ${MIN_N} personer har svarat – annars går det att räkna ut vad enskilda personer har svarat.</p>
+      <button class="btn-reload" id="btn-reload" style="margin-top:20px">${REFRESH} Uppdatera</button>
+    </div>`;
   } else {
     // Prestationsindex card
     const prestHTML = `<div class="prest-card">
@@ -364,15 +377,12 @@ function renderAdmin() {
       </div>`;
     }).join("");
 
-    const nameList = d.names.length ? d.names.slice(0,20).join(", ")+(d.names.length>20?" m.fl.":"") : "–";
-
     body = `
       <div class="stat-row">
         <div class="stat"><div class="num">${d.n}</div><div class="lbl">Svar</div></div>
         <div class="stat"><div class="num">${fmt(d.prest)}</div><div class="lbl">Prestationsindex</div></div>
         <div class="stat"><div class="num">${d.code}</div><div class="lbl">Teamkod</div></div>
       </div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Har svarat: ${nameList}</p>
       ${prestHTML}
       ${areaCards}
       <button class="btn-reload" id="btn-reload" style="margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px">${REFRESH} Uppdatera</button>
@@ -410,13 +420,15 @@ function renderStart() {
     </div>
     <div class="start-body">
       <div class="field">
-        <label for="nm">Ditt namn</label>
-        <input id="nm" type="text" autocomplete="name" placeholder="Förnamn Efternamn" value="${state.name}">
-      </div>
-      <div class="field">
         <label for="tc">Teamkod</label>
         <input id="tc" type="text" placeholder="t.ex. saljteam-sthlm" value="${state.teamCode}">
         <p class="hint">Alla i teamet anger samma kod. Lämna tomt för att testa enskilt.</p>
+      </div>
+      <div class="privacy-note">
+        <strong>Dina svar är anonyma.</strong>
+        Vi frågar inte efter ditt namn och sparar inget som kan kopplas till dig.
+        Din teamledare ser bara sammanräknade siffror för hela teamet – aldrig enskilda svar –
+        och resultatet visas först när minst ${MIN_N} personer har svarat.
       </div>
       <div class="meta-pills">
         <span class="pill">4 områden</span>
@@ -424,7 +436,7 @@ function renderStart() {
         <span class="pill">Skala 1–10</span>
         <span class="pill">~5 min</span>
       </div>
-      <button id="btn-start" class="btn-start" ${state.name.trim()?"":"disabled"}>Starta enkäten →</button>
+      <button id="btn-start" class="btn-start">Starta enkäten →</button>
       <a href="index.html" class="btn-cancel" style="margin-bottom:0">← Tillbaka till startsidan</a>
     </div>
   </div>`;
@@ -490,18 +502,13 @@ function renderDone() {
 
 /* ── BIND (enkät) ────────────────────────────────────────── */
 function bindAll() {
-  const nm=document.getElementById("nm");
   const tc=document.getElementById("tc");
   const bs=document.getElementById("btn-start");
-  if(nm) nm.addEventListener("input",()=>{ state.name=nm.value; if(bs) bs.disabled=!state.name.trim(); });
   if(tc) tc.addEventListener("input",()=>{ state.teamCode=tc.value; });
   if(bs) bs.addEventListener("click",()=>{
-    // Sync latest input values before checking
-    const nmEl=document.getElementById("nm");
+    // Sync latest input value before checking
     const tcEl=document.getElementById("tc");
-    if(nmEl) state.name=nmEl.value;
     if(tcEl) state.teamCode=tcEl.value;
-    if(!state.name.trim()) return;
     if(hasAnswered()){
       state.screen="done"; state.saveStatus=null; render();
     } else {

@@ -212,6 +212,10 @@ const WORKER_URL = "https://hpt-worker.johan-parmler.workers.dev"; // ← byt ut
 const API = WORKER_URL + "/ai";
 const MODEL = "claude-sonnet-4-6";
 
+// Minsta antal svar innan resultat visas. Skyddar enskilda deltagare: med för
+// få svar går det att räkna ut vem som svarat vad. Håll i synk med HPT_enkat.html.
+const MIN_N = 4;
+
 const AREAS = [
   {key:"sam", name:"Teamets sammansättning", color:"#0A434A", bench:74.0, impact:0.12,
    questions:[
@@ -292,6 +296,13 @@ async function loadData(code) {
       S.err  = `Inga svar hittades för teamkoden "${code}". Kontrollera stavningen.`;
       render(); return;
     }
+    // Anonymitetsspärr: med för få svar går det att räkna ut vad enskilda
+    // deltagare har svarat, så resultatet hålls tillbaka tills MIN_N är uppnått.
+    if (data.n < MIN_N) {
+      S.view = "entry";
+      S.err  = `Teamet har ${data.n} av ${MIN_N} svar. Resultatet visas när minst ${MIN_N} personer har svarat – annars går det att räkna ut vad enskilda personer har svarat.`;
+      render(); return;
+    }
     // Map Worker response — fill in question texts from local AREAS definition
     const areas = {};
     AREAS.forEach(a => {
@@ -303,7 +314,7 @@ async function loadData(code) {
       }));
       areas[a.key] = { score: ad.score ?? null, qs };
     });
-    S.data = { n: data.n, code, areas, prest: data.prest ?? null, names: data.names || [] };
+    S.data = { n: data.n, code, areas, prest: data.prest ?? null };
     S.view = "result";
   } catch(e) {
     S.view = "entry"; S.err = "Kunde inte läsa data: " + e.message;
@@ -504,10 +515,6 @@ function renderResult() {
     </div>`;
   }).join("");
 
-  const namesStr = d.names.length
-    ? d.names.slice(0,10).join(", ")+(d.names.length>10?" m.fl.":"")
-    : "–";
-
   return `<div class="page">
     <div class="result-hero">
       <div class="circle-wrap">
@@ -529,7 +536,7 @@ function renderResult() {
         </div>
         <h2>Teamets samlade resultat</h2>
         <p class="desc">Prestationsindexet mäter hur nöjda, förväntansuppfyllda och nära ett högpresterande team medarbetarna upplever sig vara. Skala 0–100 där den lodräta linjen i staplarna visar nationellt snitt.</p>
-        <div class="n-badge"><strong>${d.n}</strong> svar · ${namesStr}</div>
+        <div class="n-badge"><strong>${d.n}</strong> svar · anonyma</div>
       </div>
     </div>
 
@@ -658,7 +665,7 @@ function loadDemo() {
   });
   const prestArr = resps.map(r => r.prest).filter(v => typeof v === "number");
   const prest = prestArr.length ? +(prestArr.reduce((a,b)=>a+b,0)/prestArr.length).toFixed(1) : null;
-  S.data = { n: resps.length, code: "demo-team", areas, prest, names: resps.map(r=>r.name).filter(Boolean) };
+  S.data = { n: resps.length, code: "demo-team", areas, prest };
   S.teamCode = "demo-team";
   S.view = "result";
   render();
