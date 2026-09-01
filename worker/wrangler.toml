@@ -23,7 +23,7 @@ id = "2dd5e6fbdf1d40d9bc6f18d962f7fed0"
 # Origins allowed to call this Worker. Anything not listed gets no CORS
 # headers back, so browsers block it. Add the Azure Static Web Apps URL and
 # any custom domain. Keep localhost only while developing.
-ALLOWED_ORIGINS = "https://mango-rock-0e666ea10.azurestaticapps.net"
+ALLOWED_ORIGINS = "https://mango-rock-0e666ea10.7.azurestaticapps.net"
 
 # Minimum responses before /results returns anything. Must match MIN_N in
 # HPT_enkat.html and HPT_resultat.html.
