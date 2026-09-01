@@ -1,0 +1,51 @@
+name = "hpt-worker"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# ─────────────────────────────────────────────────────────────
+# FILL IN BEFORE FIRST DEPLOY
+#
+#   account_id  Cloudflare dashboard → Workers & Pages → right sidebar
+#   id          Workers & Pages → KV → the namespace hpt-worker already uses
+#
+# The KV binding name below MUST match what the deployed Worker calls it in
+# code (env.<BINDING>). Check the existing source after pulling it — if it
+# says env.HPT or env.KV, change `binding` here to match, or the deploy will
+# silently lose access to all existing data.
+# ─────────────────────────────────────────────────────────────
+account_id = "PASTE_CLOUDFLARE_ACCOUNT_ID"
+
+[[kv_namespaces]]
+binding = "HPT_KV"
+id = "PASTE_KV_NAMESPACE_ID"
+
+[vars]
+# Origins allowed to call this Worker. Anything not listed gets no CORS
+# headers back, so browsers block it. Add the Azure Static Web Apps URL and
+# any custom domain. Keep localhost only while developing.
+ALLOWED_ORIGINS = "https://mango-rock-0e666ea10.azurestaticapps.net"
+
+# Minimum responses before /results returns anything. Must match MIN_N in
+# HPT_enkat.html and HPT_resultat.html.
+MIN_N = "4"
+
+# ─────────────────────────────────────────────────────────────
+# SECRETS — never put these in this file. Set them with:
+#
+#   npx wrangler secret put ANTHROPIC_API_KEY
+#
+# ANTHROPIC_API_KEY   the key /ai proxies with
+# ─────────────────────────────────────────────────────────────
+
+# Staging environment. Deploy with: npx wrangler deploy --env staging
+# Give it its OWN KV namespace id so tests never touch pilot data.
+[env.staging]
+name = "hpt-worker-staging"
+
+[env.staging.vars]
+ALLOWED_ORIGINS = "http://localhost:4280"
+MIN_N = "4"
+
+[[env.staging.kv_namespaces]]
+binding = "HPT_KV"
+id = "PASTE_STAGING_KV_NAMESPACE_ID"

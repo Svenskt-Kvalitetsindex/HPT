@@ -1,0 +1,35 @@
+name: Deploy Worker
+
+# Only runs when the Worker itself changes — the Azure Static Web Apps
+# workflow handles www_app and shouldn't trigger a Worker deploy.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - ".github/workflows/worker-deploy.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy hpt-worker
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Requires CLOUDFLARE_API_TOKEN in repo secrets, with permissions:
+      #   Workers Scripts: Edit
+      #   Workers KV Storage: Edit
+      # ANTHROPIC_API_KEY is NOT set here — it lives as a Worker secret,
+      # set once with `npx wrangler secret put ANTHROPIC_API_KEY`.
+      - name: Deploy
+        run: npx --yes wrangler@3 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

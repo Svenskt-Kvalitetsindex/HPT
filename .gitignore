@@ -5,3 +5,10 @@ Thumbs.db
 # Editor files
 *.txt
 *.bak
+
+# Worker
+node_modules/
+.wrangler/
+.dev.vars
+kv-keys.json
+kv-backup/
