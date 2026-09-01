@@ -1,14 +1,22 @@
 name: Deploy Worker
 
-# Only runs when the Worker itself changes — the Azure Static Web Apps
-# workflow handles www_app and shouldn't trigger a Worker deploy.
+# MANUAL ONLY — deliberately has no `push` trigger.
+#
+# On 2026-09-01 this workflow auto-deployed on push to main and replaced the
+# live Worker with the scaffold in src/index.js, taking the survey, results
+# and admin pages down until a rollback. A push trigger is only safe once
+# src/index.js contains the real implementation AND there is a staging step
+# in front of production.
+#
+# Until then: run this by hand from the Actions tab, and only when you know
+# what is in src/index.js.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "worker/**"
-      - ".github/workflows/worker-deploy.yml"
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "deploy" to confirm src/index.js is the real Worker, not the scaffold'
+        required: true
+        default: ""
 
 jobs:
   deploy:
@@ -17,8 +25,18 @@ jobs:
     defaults:
       run:
         working-directory: worker
+    if: inputs.confirm == 'deploy'
     steps:
       - uses: actions/checkout@v4
+
+      # Refuse to ship the scaffold. Belt and braces alongside the manual
+      # trigger — this is the check that would have prevented the outage.
+      - name: Refuse to deploy the scaffold
+        run: |
+          if grep -q "not implemented" src/index.js; then
+            echo "::error::src/index.js still contains scaffold stubs. Merge the real Worker source before deploying."
+            exit 1
+          fi
 
       - uses: actions/setup-node@v4
         with:
