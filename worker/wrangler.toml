@@ -13,11 +13,11 @@ compatibility_date = "2026-09-01"
 # says env.HPT or env.KV, change `binding` here to match, or the deploy will
 # silently lose access to all existing data.
 # ─────────────────────────────────────────────────────────────
-account_id = "PASTE_CLOUDFLARE_ACCOUNT_ID"
+account_id = "da3ba221feaf632004a6fd7983a95ec2"
 
 [[kv_namespaces]]
 binding = "HPT_KV"
-id = "PASTE_KV_NAMESPACE_ID"
+id = "2dd5e6fbdf1d40d9bc6f18d962f7fed0"
 
 [vars]
 # Origins allowed to call this Worker. Anything not listed gets no CORS
